@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}Achievements{% endblock %}
+{% block title %}{{ t('Achievements') }}{% endblock %}
 {% block content %}
-<h2>🎖️ Achievements</h2>
+<h2>🎖️ {{ t('Achievements') }}</h2>
 <div class="ach-grid">
 {% for a in all_ach %}
   <div class="ach-badge {{ 'earned' if a.id in earned else 'locked' }}" title="{{ a.descr }}">
@@ -11,5 +11,5 @@
   </div>
 {% endfor %}
 </div>
-<p class="muted" style="margin-top:12px">{{ earned|length }}/{{ all_ach|length }} earned</p>
+<p class="muted" style="margin-top:12px">{{ earned|length }}/{{ all_ach|length }} {{ t('earned') }}</p>
 {% endblock %}

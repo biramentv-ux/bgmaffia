@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -26,7 +27,7 @@ def deposit():
     except ValueError:
         amount = 0
     if amount <= 0:
-        flash("Invalid amount.", 'error')
+        flash(tf("Invalid amount."), 'error')
         return redirect(url_for('bank.bank_page'))
 
     db.execute("BEGIN IMMEDIATE")
@@ -54,7 +55,7 @@ def withdraw():
     except ValueError:
         amount = 0
     if amount <= 0:
-        flash("Invalid amount.", 'error')
+        flash(tf("Invalid amount."), 'error')
         return redirect(url_for('bank.bank_page'))
 
     db.execute("BEGIN IMMEDIATE")

@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Leaderboard{% endblock %}
+{% block title %}{{ t('Leaderboard') }}{% endblock %}
 {% block content %}
-<h2>🏆 Leaderboard</h2>
+<h2>🏆 {{ t('Leaderboard') }}</h2>
 <div class="dash-grid three-col">
 
   <div class="card">
-    <h3>⭐ By Respect</h3>
+    <h3>⭐ {{ t('By Respect') }}</h3>
     <table class="tbl">
-      <thead><tr><th>#</th><th>Player</th><th>Level</th><th>Respect</th></tr></thead>
+      <thead><tr><th>#</th><th>{{ t('Player') }}</th><th>{{ t('Level') }}</th><th>{{ t('Respect') }}</th></tr></thead>
       <tbody>
       {% for i, p in enumerate(by_respect) %}
-        <tr class="{{ 'row-highlight' if p.username == (player.username if player else '') }}">
+        <tr class="{{ 'row-highlight' if p.username == username }}">
           <td>{{ i+1 }}</td>
-          <td><a href="{{ url_for('home.profile', uid=loop.index) }}">{{ p.username }}</a></td>
+          <td>{{ p.username }}</td>
           <td>{{ p.level }}</td>
           <td>{{ p.respect }}</td>
         </tr>
@@ -22,9 +22,9 @@
   </div>
 
   <div class="card">
-    <h3>📊 By Level</h3>
+    <h3>📊 {{ t('By Level') }}</h3>
     <table class="tbl">
-      <thead><tr><th>#</th><th>Player</th><th>Level</th><th>Respect</th></tr></thead>
+      <thead><tr><th>#</th><th>{{ t('Player') }}</th><th>{{ t('Level') }}</th><th>{{ t('Respect') }}</th></tr></thead>
       <tbody>
       {% for i, p in enumerate(by_level) %}
         <tr>
@@ -39,9 +39,9 @@
   </div>
 
   <div class="card">
-    <h3>💰 By Wealth</h3>
+    <h3>💰 {{ t('By Wealth') }}</h3>
     <table class="tbl">
-      <thead><tr><th>#</th><th>Player</th><th>Level</th><th>Wealth</th></tr></thead>
+      <thead><tr><th>#</th><th>{{ t('Player') }}</th><th>{{ t('Level') }}</th><th>{{ t('Wealth') }}</th></tr></thead>
       <tbody>
       {% for i, p in enumerate(by_wealth) %}
         <tr>

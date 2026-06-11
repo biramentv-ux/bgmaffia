@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
-{% block title %}Create Gang{% endblock %}
+{% block title %}{{ t('Create a Gang') }}{% endblock %}
 {% block content %}
-<h2>🏴 Create a Gang</h2>
+<h2>🏴 {{ t('Create a Gang') }}</h2>
 <div class="card" style="max-width:400px">
   <form method="post" action="{{ url_for('gang.create_gang') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Gang Name</label>
+    <label>{{ t('Gang Name') }}</label>
     <input type="text" name="name" required minlength="3" maxlength="30" placeholder="The Dark Knights">
-    <label>Tag <small>(up to 6 chars, shown in brackets)</small></label>
+    <label>{{ t('Tag') }} <small>{{ t('(up to 6 chars, shown in brackets)') }}</small></label>
     <input type="text" name="tag" maxlength="6" placeholder="DARK">
-    <button type="submit" class="btn btn-primary">Create Gang</button>
+    <button type="submit" class="btn btn-primary">{{ t('Create Gang') }}</button>
   </form>
-  <p class="muted small">Requires 50 respect. You have {{ player.respect }} respect.</p>
+  <p class="muted small">{{ t('Requires 50 respect. You have') }} {{ player.respect }} {{ t('respect.') }}</p>
 </div>
 {% endblock %}

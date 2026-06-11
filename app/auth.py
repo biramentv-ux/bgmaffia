@@ -1,3 +1,4 @@
+from .i18n import tf
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from .db import get_db
@@ -69,10 +70,10 @@ def login():
         db = get_db()
         user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         if not user or not check_password_hash(user['password_hash'], password):
-            flash("Invalid username or password.", 'error')
+            flash(tf("Invalid username or password."), 'error')
             return render_template('auth/login.html')
         if user['is_banned']:
-            flash("Your account has been banned.", 'error')
+            flash(tf("Your account has been banned."), 'error')
             return render_template('auth/login.html')
         session.clear()
         session['user_id'] = user['id']
@@ -83,5 +84,5 @@ def login():
 @bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    flash("You have been logged out.", 'info')
+    flash(tf("You have been logged out."), 'info')
     return redirect(url_for('auth.login'))

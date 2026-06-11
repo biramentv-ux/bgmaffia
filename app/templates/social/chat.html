@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}Chat{% endblock %}
+{% block title %}{{ t('Chat') }}{% endblock %}
 {% block content %}
-<h2>💬 Global Chat</h2>
+<h2>💬 {{ t('Global Chat') }}</h2>
 <div id="chat-box" class="chat-box">
 {% for m in messages %}
   <div class="chat-msg">
@@ -15,8 +15,8 @@
 <form id="chat-form" method="post" action="{{ url_for('social.chat_send') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="chat-input-row">
-    <input type="text" name="body" id="chat-input" placeholder="Say something..." maxlength="200" required autocomplete="off">
-    <button type="submit" class="btn btn-primary">Send</button>
+    <input type="text" name="body" id="chat-input" placeholder="{{ t('Say something...') }}" maxlength="200" required autocomplete="off">
+    <button type="submit" class="btn btn-primary">{{ t('Send') }}</button>
   </div>
 </form>
 {% endblock %}

@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import resolve_fight, is_in_jail, is_in_hospital, is_protected, is_online, mission_progress, check_achievements
@@ -60,17 +61,17 @@ def attack(target_id):
     target_u = db.execute("SELECT * FROM users WHERE id=?", (target_id,)).fetchone()
     if not target_p or not target_u:
         db.execute("ROLLBACK")
-        flash("Target not found.", 'error')
+        flash(tf("Target not found."), 'error')
         return redirect(url_for('fight.attack_page'))
     target_p = dict(target_p)
 
     if not is_online(target_u):
         db.execute("ROLLBACK")
-        flash("That player is no longer online.", 'error')
+        flash(tf("That player is no longer online."), 'error')
         return redirect(url_for('fight.attack_page'))
     if is_in_jail(target_p) or is_in_hospital(target_p) or is_protected(target_p):
         db.execute("ROLLBACK")
-        flash("That player cannot be attacked right now.", 'error')
+        flash(tf("That player cannot be attacked right now."), 'error')
         return redirect(url_for('fight.attack_page'))
     db.execute("ROLLBACK")
 

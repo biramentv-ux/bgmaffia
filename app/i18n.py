@@ -3,6 +3,7 @@
 Lookup is by the English string itself; unknown strings fall back to English,
 so untranslated pages keep working.
 """
+from flask import session
 
 LANGS = ('en', 'bg')
 DEFAULT_LANG = 'en'
@@ -116,6 +117,159 @@ BG = {
     'Cost:': 'Цена:',
     'energy': 'енергия',
 
+    # ── Attack / Fight ────────────────────────────────────────────────
+    'Attack Online Players': 'Нападни онлайн играчи',
+    'Only players currently online and not in jail/hospital/protection can be attacked.':
+        'Само онлайн играчи, които са свободни, могат да се нападат.',
+    'HP': 'ЖП',
+    'No players online to attack right now. Check back soon!':
+        'Никой онлайн в момента. Провери пак след малко!',
+    'You': 'Ти',
+
+    # ── Shop ─────────────────────────────────────────────────────────
+    'Syndicate Supply': 'Склада на синдиката',
+    'Cash on hand:': 'Кеш в джоба:',
+    '⚔️ Weapons': '⚔️ Оръжия',
+    '🚗 Cars': '🚗 Коли',
+    '🐕 Dogs': '🐕 Кучета',
+    '🛡️ Armor': '🛡️ Доспехи',
+    '🍺 Consumables': '🍺 Консумативи',
+    'Item': 'Артикул',
+    'ATK': 'АТК',
+    'DEF': 'ДЕФ',
+    'Min Lv': 'Мин. Нв',
+
+    # ── Inventory ────────────────────────────────────────────────────
+    'Equipped': 'Облечено',
+    'Weapon': 'Оръжие',
+    'Car': 'Кола',
+    'Dog': 'Куче',
+    'Armor': 'Доспех',
+    'None': 'Нищо',
+    'All Items': 'Всички артикули',
+    'Qty': 'Бр.',
+    'Actions': 'Операции',
+    'equipped': 'облечено',
+    'Equip': 'Облечи',
+    'Use': 'Използвай',
+    'List': 'Пусни',
+    'List price': 'Цена за борсата',
+    'Inventory empty.': 'Багажът е празен.',
+    'Visit the shop.': 'Мини до магазина.',
+    'Type': 'Тип',
+
+    # ── Market ───────────────────────────────────────────────────────
+    'Black Market': 'Черната борса',
+    'Player-to-player listings. Cash:': 'Борса играч-играч. Кеш:',
+    'Active Listings': 'Активни оферти',
+    'Seller': 'Продавач',
+    'Yours': 'Твоя',
+    'Your Listings': 'Твои оферти',
+    'Cancel': 'Откажи',
+    'No listings right now. Be the first to list something!':
+        'Няма оферти в момента. Бъди първи!',
+
+    # ── Gang ─────────────────────────────────────────────────────────
+    'Gangs of the City': 'Тайфите в града',
+    'My Gang': 'Моята тайфа',
+    'Name': 'Име',
+    'Tag': 'Тег',
+    'Leader': 'Бос',
+    'Members': 'Членове',
+    'View': 'Виж',
+    'No gangs exist yet. Be the first!': 'Няма тайфи още. Бъди първи!',
+    'Gang Info': 'За тайфата',
+    'HQ Level': 'Ниво на щаба',
+    'Invite Member': 'Покани член',
+    'Player username': 'Псевдоним на играч',
+    'Invite': 'Покани',
+    'Donate $': 'Дари $',
+    'Donate': 'Дари',
+    'Rank': 'Ранг',
+    'Online': 'Онлайн',
+    'Kick': 'Ритни',
+    'Leave Gang': 'Напусни тайфата',
+    'Leave gang?': 'Напускаш тайфата?',
+    'Controlled Territories': 'Контролирани райони',
+    'Create a Gang': 'Събери тайфа',
+    'Gang Name': 'Име на тайфата',
+    '(up to 6 chars, shown in brackets)': '(до 6 знака, показва се в скоби)',
+    'Requires 50 respect. You have': 'Нужни са 50 респект. Имаш',
+    'respect.': 'респект.',
+
+    # ── Territory ────────────────────────────────────────────────────
+    'City Territory': 'Градски райони',
+    'Claim unclaimed territories. Owned spots generate passive income.':
+        'Завземи свободни райони. Завзетите носят пасивен доход.',
+    'Owned by': 'Собственост на',
+    'Gang:': 'Тайфа:',
+    'Unclaimed': 'Свободен',
+    'Claim': 'Завземи',
+
+    # ── Casino ───────────────────────────────────────────────────────
+    'Casino': 'Казиното',
+    'Dice Roll': 'Зарове',
+    'Guess 1–6. Win 5× your bet.': 'Познай от 1 до 6. Печелиш 5× залога.',
+    'Bet ($)': 'Залог ($)',
+    'Guess (1–6)': 'Познай (1–6)',
+    'Roll!': 'Хвърли!',
+    'Slots': 'Слотове',
+    'Three matching symbols → win big.': 'Три еднакви символа → голяма печалба.',
+    'Spin!': 'Върти!',
+    'Blackjack': 'Блекджек',
+    'Beat the dealer. Blackjack pays 2.5×.': 'Бий дилъра. Блекджек плаща 2.5×.',
+    'Deal!': 'Раздай!',
+    'Your Hand': 'Ти имаш',
+    'Dealer Hand': 'Дилъра има',
+    'Hit': 'Вземи карта',
+    'Stand': 'Спри',
+    'Forfeit': 'Предай се',
+
+    # ── Mail / Chat ───────────────────────────────────────────────────
+    'Mail': 'Пощата',
+    'Send Message': 'Изпрати съобщение',
+    'Recipient username': 'Псевдоним на получател',
+    'Subject': 'Тема',
+    'Message...': 'Съобщение...',
+    'Send': 'Изпрати',
+    'Inbox': 'Входяща кутия',
+    'From:': 'От:',
+    'No messages.': 'Нямаш съобщения.',
+    'Global Chat': 'Общ чат',
+    'Say something...': 'Кажи нещо...',
+
+    # ── Missions ─────────────────────────────────────────────────────
+    'Missions': 'Мисии',
+    'Daily': 'Дневна',
+    'Reward:': 'Награда:',
+    'respect': 'респект',
+    'Complete!': 'Изпълнено!',
+
+    # ── Leaderboard ───────────────────────────────────────────────────
+    'Leaderboard': 'Класацията',
+    'By Respect': 'По респект',
+    'By Level': 'По ниво',
+    'By Wealth': 'По богатство',
+    'Wealth': 'Богатство',
+
+    # ── Achievements ─────────────────────────────────────────────────
+    'Achievements': 'Постижения',
+    'earned': 'спечелено',
+
+    # ── Hitlist ──────────────────────────────────────────────────────
+    'Hitlist': 'Черния списък',
+    'Place a Bounty': 'Сложи наказание',
+    'Target username': 'Псевдоним на мишена',
+    'Bounty ($)': 'Наказание ($)',
+    'Place Bounty': 'Обяви наказание',
+    'Minimum $500. Bounty expires in 3 days.': 'Минимум $500. Изтича след 3 дни.',
+    'Active Bounties': 'Активни наказания',
+    'Target': 'Мишена',
+    'Bounty': 'Наказание',
+    'Placed By': 'Обявено от',
+    'Expires': 'Изтича',
+    'No active bounties.': 'Няма активни наказания.',
+
     # ── Bank ──────────────────────────────────────────────────────────
     'First National Bank': 'Първа национална банка',
     'Cash on Hand': 'Кеш в джоба',
@@ -126,7 +280,6 @@ BG = {
     'Withdraw': 'Тегли',
     'Amount': 'Сума',
     'Transaction History': 'Движение по сметката',
-    'Type': 'Вид',
 
     # ── Jail / Hospital ───────────────────────────────────────────────
     'City Jail': 'Градския пандиз',
@@ -187,7 +340,8 @@ BG = {
     'Requires level': 'Иска ниво',
     'Street Lottery': 'Уличната лотария',
     'A draw every hour. Winner takes': 'Теглене всеки час. Печелившият гепи',
-    'of the pot — the house keeps the rest. More tickets, better odds.': 'от джакпота — останалото е за къщата. Повече билети – по-голям шанс.',
+    'of the pot — the house keeps the rest. More tickets, better odds.':
+        'от джакпота — останалото е за къщата. Повече билети – по-голям шанс.',
     'Current Pot': 'Текущ джакпот',
     'Next draw': 'Следващ търг',
     'Your tickets': 'Твоите билети',
@@ -198,10 +352,91 @@ BG = {
     'Prize': 'Награда',
     'When': 'Кога',
     'No draws completed yet. Be the first winner!': 'Още няма теглене. Бъди първият късметлия!',
+
+    # ── Flash messages (server-side) ─────────────────────────────────
+    # auth
+    'Invalid username or password.': 'Грешен псевдоним или парола.',
+    'Your account has been banned.': 'Акаунтът ти е забранен.',
+    'You have been logged out.': 'Излязъл си от играта.',
+    # crimes
+    'Crime not found.': 'Такъв удар не съществува.',
+    "You're not high enough level for that crime.": 'Нивото ти е прекалено ниско за тази далавера.',
+    'This crime is still on cooldown.': 'Чакай – пак ще можеш.',
+    # gym
+    'Invalid stat.': 'Невалиден стат.',
+    # fight
+    "You can't attack yourself.": 'Не можеш да се бориш сам със себе си.',
+    "You're too injured to fight (need at least 10 HP).": 'Прекалено наранен си – трябват ти поне 10 ЖП.',
+    'Target not found.': 'Мишената не е намерена.',
+    'That player is no longer online.': 'Играчът вече не е онлайн.',
+    'That player cannot be attacked right now.': 'Играчът не може да бъде нападнат в момента.',
+    # bank
+    'Invalid amount.': 'Невалидна сума.',
+    # shop
+    'Item not found.': 'Артикулът не е намерен.',
+    "You're not high enough level.": 'Нивото ти е прекалено ниско.',
+    # inventory
+    'Item not found in inventory.': 'Артикулът не е в багажа.',
+    'This item type cannot be equipped.': 'Този тип артикул не може да се облече.',
+    "That item can't be used directly.": 'Артикулът не може да се ползва директно.',
+    # market
+    'Invalid form data.': 'Невалидни данни.',
+    'Price must be positive.': 'Цената трябва да е положителна.',
+    'Item not in your inventory.': 'Артикулът не е в твоя багаж.',
+    '📦 Item listed on the black market.': '📦 Артикулът е пуснат на черната борса.',
+    'Listing not available.': 'Офертата не е налична.',
+    "Can't buy your own listing.": 'Не можеш да купуваш от себе си.',
+    'Listing cancelled, item returned.': 'Офертата е отменена, артикулът е върнат.',
+    # gang
+    "You're already in a gang.": 'Вече си в тайфа.',
+    'Gang name must be at least 3 characters.': 'Името на тайфата трябва да е поне 3 знака.',
+    'Gang name already taken.': 'Това име вече е заето.',
+    "You need to be a Capo+ to invite.": 'Трябва да си поне Капо, за да каниш.',
+    'Player not found.': 'Играчът не е намерен.',
+    'That player is already in a gang.': 'Играчът вече е в тайфа.',
+    'Gang is full.': 'Тайфата е пълна.',
+    'Only Underboss+ can kick members.': 'Само Андърбос+ може да ритне член.',
+    "Can't kick the leader.": 'Не може да ритнеш боса.',
+    'Member kicked.': 'Членът е изваден.',
+    'Not in a gang.': 'Не си в тайфа.',
+    'Not enough cash.': 'Нямаш достатъчно кеш.',
+    'Leaders must disband the gang or transfer leadership first.':
+        'Босът трябва да разпусне тайфата или да предаде ръководството.',
+    'You left the gang.': 'Напусна тайфата.',
+    'Territory not found.': 'Районът не е намерен.',
+    'You already own this territory.': 'Вече владееш този район.',
+    'This territory is already claimed. Attack the owner to take it.':
+        'Районът е завзет. Нападни собственика, за да го вземеш.',
+    'Nothing to collect yet.': 'Няма какво да прибираш все още.',
+    # casino
+    'Invalid bet.': 'Невалиден залог.',
+    'Bet must be > 0 and guess must be 1–6.': 'Залогът трябва да е > 0, а познатото – от 1 до 6.',
+    'Not enough cash.': 'Нямаш достатъчно кеш.',
+    'No active blackjack game.': 'Няма активна блекджек игра.',
+    # social
+    'Recipient and body are required.': 'Получателят и текстът са задължителни.',
+    'Invalid relation type.': 'Невалиден тип връзка.',
+    # jail
+    "You're not in jail.": 'Не си в пандиза.',
+    "You're in jail – you can't bust others.": 'В пандиза си – не можеш да измъкваш другите.',
+    "That player isn't in jail.": 'Играчът не е в пандиза.',
+    # hospital
+    "You're not in the hospital.": 'Не си в болницата.',
+    # rank / bounty
+    'Minimum bounty is $500.': 'Минималното наказание е $500.',
 }
 
 _TABLES = {'bg': BG}
 
 
 def translate(lang, text):
+    return _TABLES.get(lang, {}).get(text, text)
+
+
+def tf(text):
+    """Translate a flash message using the current request's session language."""
+    try:
+        lang = session.get('lang', DEFAULT_LANG)
+    except RuntimeError:
+        lang = DEFAULT_LANG
     return _TABLES.get(lang, {}).get(text, text)

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -35,11 +36,11 @@ def list_item():
         inv_id = int(request.form['inv_id'])
         price  = int(request.form['price'])
     except (KeyError, ValueError):
-        flash("Invalid form data.", 'error')
+        flash(tf("Invalid form data."), 'error')
         return redirect(url_for('market.market_page'))
 
     if price <= 0:
-        flash("Price must be positive.", 'error')
+        flash(tf("Price must be positive."), 'error')
         return redirect(url_for('market.market_page'))
 
     inv = db.execute(
@@ -47,7 +48,7 @@ def list_item():
         (inv_id, uid)
     ).fetchone()
     if not inv:
-        flash("Item not in your inventory.", 'error')
+        flash(tf("Item not in your inventory."), 'error')
         return redirect(url_for('market.market_page'))
 
     expires = (datetime.utcnow() + timedelta(days=7)).isoformat()
@@ -61,7 +62,7 @@ def list_item():
         (uid, inv['item_id'], 1, price, expires)
     )
     db.commit()
-    flash("📦 Item listed on the black market.", 'success')
+    flash(tf("📦 Item listed on the black market."), 'success')
     return redirect(url_for('market.market_page'))
 
 
@@ -76,7 +77,7 @@ def buy_listing(listing_id):
     listing = db.execute("SELECT * FROM marketplace WHERE id=? AND status='active'", (listing_id,)).fetchone()
     if not listing or (listing['expires_at'] and listing['expires_at'] < now_iso):
         db.execute("ROLLBACK")
-        flash("Listing not available.", 'error')
+        flash(tf("Listing not available."), 'error')
         return redirect(url_for('market.market_page'))
     if listing['seller_id'] == uid:
         db.execute("ROLLBACK")
@@ -117,10 +118,10 @@ def cancel_listing(listing_id):
     uid = g.player['user_id']
     listing = db.execute("SELECT * FROM marketplace WHERE id=? AND seller_id=? AND status='active'", (listing_id, uid)).fetchone()
     if not listing:
-        flash("Listing not found.", 'error')
+        flash(tf("Listing not found."), 'error')
         return redirect(url_for('market.market_page'))
     db.execute("UPDATE marketplace SET status='cancelled' WHERE id=?", (listing_id,))
     db.execute("INSERT INTO inventory(user_id,item_id,qty) VALUES(?,?,1)", (uid, listing['item_id']))
     db.commit()
-    flash("Listing cancelled, item returned.", 'success')
+    flash(tf("Listing cancelled, item returned."), 'success')
     return redirect(url_for('market.market_page'))

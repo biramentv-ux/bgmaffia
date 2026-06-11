@@ -1,44 +1,44 @@
 {% extends 'base.html' %}
-{% block title %}Inventory{% endblock %}
+{% block title %}{{ t('Inventory') }}{% endblock %}
 {% block content %}
-<h2>🎒 Inventory</h2>
+<h2>🎒 {{ t('Inventory') }}</h2>
 <div class="card equipped-card">
-  <h3>🔧 Equipped</h3>
+  <h3>🔧 {{ t('Equipped') }}</h3>
   <div class="equip-grid">
-    <div class="equip-slot"><span>⚔️ Weapon</span>
+    <div class="equip-slot"><span>⚔️ {{ t('Weapon') }}</span>
       {% if equipped.weapon %}
         {% for i in inv %}{% if i.item_id == equipped.weapon %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
-      {% else %}<em class="muted">None</em>{% endif %}
+      {% else %}<em class="muted">{{ t('None') }}</em>{% endif %}
     </div>
-    <div class="equip-slot"><span>🚗 Car</span>
+    <div class="equip-slot"><span>🚗 {{ t('Car') }}</span>
       {% if equipped.car %}
         {% for i in inv %}{% if i.item_id == equipped.car %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
-      {% else %}<em class="muted">None</em>{% endif %}
+      {% else %}<em class="muted">{{ t('None') }}</em>{% endif %}
     </div>
-    <div class="equip-slot"><span>🐕 Dog</span>
+    <div class="equip-slot"><span>🐕 {{ t('Dog') }}</span>
       {% if equipped.dog %}
         {% for i in inv %}{% if i.item_id == equipped.dog %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
-      {% else %}<em class="muted">None</em>{% endif %}
+      {% else %}<em class="muted">{{ t('None') }}</em>{% endif %}
     </div>
-    <div class="equip-slot"><span>🛡️ Armor</span>
+    <div class="equip-slot"><span>🛡️ {{ t('Armor') }}</span>
       {% if equipped.armor %}
         {% for i in inv %}{% if i.item_id == equipped.armor %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
-      {% else %}<em class="muted">None</em>{% endif %}
+      {% else %}<em class="muted">{{ t('None') }}</em>{% endif %}
     </div>
   </div>
 </div>
 
 {% if inv %}
 <div class="card">
-  <h3>📦 All Items ({{ inv|length }})</h3>
+  <h3>📦 {{ t('All Items') }} ({{ inv|length }})</h3>
   <table class="tbl">
-    <thead><tr><th>Item</th><th>Type</th><th>ATK</th><th>DEF</th><th>Qty</th><th>Actions</th></tr></thead>
+    <thead><tr><th>{{ t('Item') }}</th><th>{{ t('Type') }}</th><th>{{ t('ATK') }}</th><th>{{ t('DEF') }}</th><th>{{ t('Qty') }}</th><th>{{ t('Actions') }}</th></tr></thead>
     <tbody>
     {% for i in inv %}
       <tr>
         <td><strong>{{ i.name }}</strong>
           {% if i.item_id == equipped.weapon or i.item_id == equipped.car or i.item_id == equipped.dog or i.item_id == equipped.armor %}
-            <span class="tag tag-equipped">equipped</span>
+            <span class="tag tag-equipped">{{ t('equipped') }}</span>
           {% endif %}
         </td>
         <td class="muted">{{ i.type }}</td>
@@ -49,19 +49,19 @@
           {% if i.type in ('weapon','car','dog','armor') %}
           <form method="post" action="{{ url_for('inventory.equip', inv_id=i.id) }}" style="display:inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm">Equip</button>
+            <button type="submit" class="btn btn-sm">{{ t('Equip') }}</button>
           </form>
           {% elif i.type == 'consumable' %}
           <form method="post" action="{{ url_for('inventory.use_item', inv_id=i.id) }}" style="display:inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-gold">Use</button>
+            <button type="submit" class="btn btn-sm btn-gold">{{ t('Use') }}</button>
           </form>
           {% endif %}
           <form method="post" action="{{ url_for('market.list_item') }}" style="display:inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="inv_id" value="{{ i.id }}">
-            <input type="number" name="price" placeholder="List price" min="1" style="width:90px;display:inline">
-            <button type="submit" class="btn btn-sm">List</button>
+            <input type="number" name="price" placeholder="{{ t('List price') }}" min="1" style="width:90px;display:inline">
+            <button type="submit" class="btn btn-sm">{{ t('List') }}</button>
           </form>
         </td>
       </tr>
@@ -70,6 +70,6 @@
   </table>
 </div>
 {% else %}
-<div class="card"><p class="muted">Inventory empty. <a href="{{ url_for('shop.shop_page') }}">Visit the shop.</a></p></div>
+<div class="card"><p class="muted">{{ t('Inventory empty.') }} <a href="{{ url_for('shop.shop_page') }}">{{ t('Visit the shop.') }}</a></p></div>
 {% endif %}
 {% endblock %}

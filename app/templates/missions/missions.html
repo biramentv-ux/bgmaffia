@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}Missions{% endblock %}
+{% block title %}{{ t('Missions') }}{% endblock %}
 {% block content %}
-<h2>📋 Missions</h2>
+<h2>📋 {{ t('Missions') }}</h2>
 
 <div class="missions-grid">
 {% for m in missions %}
@@ -9,7 +9,7 @@
     <div class="mission-title">
       {{ '📅' if m.is_daily else '🏅' }}
       {{ m.descr }}
-      {% if m.is_daily %}<span class="tag tag-daily">Daily</span>{% endif %}
+      {% if m.is_daily %}<span class="tag tag-daily">{{ t('Daily') }}</span>{% endif %}
     </div>
     <div class="mission-progress">
       <div class="prog-bar-wrap">
@@ -18,14 +18,14 @@
       <span class="muted small">{{ m.progress }}/{{ m.target }}</span>
     </div>
     <div class="mission-reward muted small">
-      Reward:
+      {{ t('Reward:') }}
       {% if m.reward.cash %}💵 ${{ "{:,}".format(m.reward.cash) }}{% endif %}
       {% if m.reward.xp %}✨ {{ m.reward.xp }} XP{% endif %}
-      {% if m.reward.respect %}⭐ {{ m.reward.respect }} respect{% endif %}
-      {% if m.reward.gold %}💛 {{ m.reward.gold }} Gold{% endif %}
+      {% if m.reward.respect %}⭐ {{ m.reward.respect }} {{ t('respect') }}{% endif %}
+      {% if m.reward.gold %}💛 {{ m.reward.gold }} {{ t('Gold') }}{% endif %}
     </div>
     {% if m.completed %}
-    <div class="mission-done">✅ Complete!</div>
+    <div class="mission-done">✅ {{ t('Complete!') }}</div>
     {% endif %}
   </div>
 {% endfor %}

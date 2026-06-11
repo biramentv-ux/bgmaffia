@@ -1,26 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}Hitlist{% endblock %}
+{% block title %}{{ t('Hitlist') }}{% endblock %}
 {% block content %}
-<h2>☠️ Hitlist</h2>
+<h2>☠️ {{ t('Hitlist') }}</h2>
 
 <div class="card">
-  <h3>Place a Bounty</h3>
+  <h3>{{ t('Place a Bounty') }}</h3>
   <form method="post" action="{{ url_for('rank.place_bounty') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-row">
-      <input type="text" name="target" placeholder="Target username" required>
-      <input type="number" name="amount" placeholder="Bounty ($)" min="500" required>
-      <button type="submit" class="btn btn-danger">Place Bounty</button>
+      <input type="text" name="target" placeholder="{{ t('Target username') }}" required>
+      <input type="number" name="amount" placeholder="{{ t('Bounty ($)') }}" min="500" required>
+      <button type="submit" class="btn btn-danger">{{ t('Place Bounty') }}</button>
     </div>
   </form>
-  <p class="muted small">Minimum $500. Bounty expires in 3 days.</p>
+  <p class="muted small">{{ t('Minimum $500. Bounty expires in 3 days.') }}</p>
 </div>
 
 {% if bounties %}
 <div class="card">
-  <h3>Active Bounties</h3>
+  <h3>{{ t('Active Bounties') }}</h3>
   <table class="tbl">
-    <thead><tr><th>Target</th><th>Level</th><th>Bounty</th><th>Placed By</th><th>Expires</th><th>Attack</th></tr></thead>
+    <thead><tr><th>{{ t('Target') }}</th><th>{{ t('Level') }}</th><th>{{ t('Bounty') }}</th><th>{{ t('Placed By') }}</th><th>{{ t('Expires') }}</th><th>{{ t('Attack') }}</th></tr></thead>
     <tbody>
     {% for b in bounties %}
       <tr>
@@ -33,7 +33,7 @@
           {% if b.target_id != player.user_id %}
           <form method="post" action="{{ url_for('fight.attack', target_id=b.target_id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-danger">⚔️ Attack</button>
+            <button type="submit" class="btn btn-sm btn-danger">⚔️ {{ t('Attack') }}</button>
           </form>
           {% endif %}
         </td>
@@ -43,6 +43,6 @@
   </table>
 </div>
 {% else %}
-<div class="card"><p class="muted">No active bounties.</p></div>
+<div class="card"><p class="muted">{{ t('No active bounties.') }}</p></div>
 {% endif %}
 {% endblock %}

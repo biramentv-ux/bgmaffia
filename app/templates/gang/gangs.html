@@ -1,22 +1,22 @@
 {% extends 'base.html' %}
-{% block title %}Gangs{% endblock %}
+{% block title %}{{ t('Gangs') }}{% endblock %}
 {% block content %}
-<h2>👥 Gangs of the City</h2>
+<h2>👥 {{ t('Gangs of the City') }}</h2>
 <div class="card-actions">
   {% if not player.gang_id %}
     {% if player.respect >= 50 %}
-    <a href="{{ url_for('gang.create_gang') }}" class="btn btn-gold">+ Create Gang</a>
+    <a href="{{ url_for('gang.create_gang') }}" class="btn btn-gold">+ {{ t('Create Gang') }}</a>
     {% else %}
-    <span class="muted">Need 50 respect to create a gang ({{ player.respect }}/50)</span>
+    <span class="muted">{{ t('Need 50 respect to create a gang') }} ({{ player.respect }}/50)</span>
     {% endif %}
   {% else %}
-  <a href="{{ url_for('gang.gang_detail', gang_id=player.gang_id) }}" class="btn btn-primary">My Gang</a>
+  <a href="{{ url_for('gang.gang_detail', gang_id=player.gang_id) }}" class="btn btn-primary">{{ t('My Gang') }}</a>
   {% endif %}
 </div>
 
 {% if gangs %}
 <table class="tbl">
-  <thead><tr><th>Name</th><th>Tag</th><th>Leader</th><th>Members</th><th>Respect</th><th>Bank</th><th></th></tr></thead>
+  <thead><tr><th>{{ t('Name') }}</th><th>{{ t('Tag') }}</th><th>{{ t('Leader') }}</th><th>{{ t('Members') }}</th><th>{{ t('Respect') }}</th><th>{{ t('Bank') }}</th><th></th></tr></thead>
   <tbody>
   {% for g in gangs %}
     <tr class="{{ 'row-highlight' if g.id == player.gang_id }}">
@@ -26,12 +26,12 @@
       <td>{{ g.member_count }}/{{ g.max_members }}</td>
       <td>{{ g.respect }}</td>
       <td>${{ "{:,}".format(g.bank) }}</td>
-      <td><a href="{{ url_for('gang.gang_detail', gang_id=g.id) }}" class="btn btn-sm">View</a></td>
+      <td><a href="{{ url_for('gang.gang_detail', gang_id=g.id) }}" class="btn btn-sm">{{ t('View') }}</a></td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
 {% else %}
-<div class="card"><p class="muted">No gangs exist yet. Be the first!</p></div>
+<div class="card"><p class="muted">{{ t('No gangs exist yet. Be the first!') }}</p></div>
 {% endif %}
 {% endblock %}

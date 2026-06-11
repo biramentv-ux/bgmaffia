@@ -1,5 +1,6 @@
 import json
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -42,12 +43,12 @@ def equip(inv_id):
         (inv_id, uid)
     ).fetchone()
     if not row:
-        flash("Item not found in inventory.", 'error')
+        flash(tf("Item not found in inventory."), 'error')
         return redirect(url_for('inventory.inventory_page'))
 
     slot = EQUIP_SLOTS.get(row['type'])
     if not slot:
-        flash("This item type cannot be equipped.", 'error')
+        flash(tf("This item type cannot be equipped."), 'error')
         return redirect(url_for('inventory.inventory_page'))
 
     db.execute(f"UPDATE players SET {slot}=? WHERE user_id=?", (row['item_id'], uid))
@@ -67,7 +68,7 @@ def use_item(inv_id):
         (inv_id, uid)
     ).fetchone()
     if not row:
-        flash("Item not found.", 'error')
+        flash(tf("Item not found."), 'error')
         return redirect(url_for('inventory.inventory_page'))
     if row['type'] != 'consumable':
         flash("That item can't be used directly.", 'error')

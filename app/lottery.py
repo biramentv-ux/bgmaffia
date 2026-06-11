@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request, current_app
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import get_open_draw, draw_lottery
@@ -55,7 +56,7 @@ def buy_tickets():
     except ValueError:
         qty = 0
     if qty <= 0 or qty > 100:
-        flash("Buy between 1 and 100 tickets.", 'error')
+        flash(tf("Buy between 1 and 100 tickets."), 'error')
         return redirect(url_for('lottery.lottery_page'))
 
     cost = qty * price

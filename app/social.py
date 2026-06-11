@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request, jsonify
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -35,11 +36,11 @@ def send_mail():
     subject = request.form.get('subject', '').strip()[:100]
     body    = request.form.get('body', '').strip()[:2000]
     if not to_name or not body:
-        flash("Recipient and body are required.", 'error')
+        flash(tf("Recipient and body are required."), 'error')
         return redirect(url_for('social.mail_page'))
     target = db.execute("SELECT id FROM users WHERE username=?", (to_name,)).fetchone()
     if not target:
-        flash("Player not found.", 'error')
+        flash(tf("Player not found."), 'error')
         return redirect(url_for('social.mail_page'))
     db.execute("INSERT INTO messages(from_id,to_id,subject,body) VALUES(?,?,?,?)",
                (uid, target['id'], subject, body))
@@ -123,11 +124,11 @@ def add_relation():
     other_name = request.form.get('username', '').strip()
     kind = request.form.get('kind', 'friend')
     if kind not in ('friend', 'enemy'):
-        flash("Invalid relation type.", 'error')
+        flash(tf("Invalid relation type."), 'error')
         return redirect(url_for('home.dashboard'))
     target = db.execute("SELECT id FROM users WHERE username=?", (other_name,)).fetchone()
     if not target or target['id'] == uid:
-        flash("Player not found.", 'error')
+        flash(tf("Player not found."), 'error')
         return redirect(url_for('home.dashboard'))
     db.execute(
         "INSERT INTO relations(user_id,other_id,kind) VALUES(?,?,?) "

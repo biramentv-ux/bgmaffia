@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import _notify, check_achievements
@@ -38,10 +39,10 @@ def create_gang():
         tag  = request.form.get('tag', '').strip()[:6].upper()
         db = get_db()
         if not name or len(name) < 3:
-            flash("Gang name must be at least 3 characters.", 'error')
+            flash(tf("Gang name must be at least 3 characters."), 'error')
             return render_template('gang/create.html')
         if db.execute("SELECT id FROM gangs WHERE name=?", (name,)).fetchone():
-            flash("Gang name already taken.", 'error')
+            flash(tf("Gang name already taken."), 'error')
             return render_template('gang/create.html')
         uid = player['user_id']
         cur = db.execute(
@@ -94,21 +95,21 @@ def invite():
     uid = g.player['user_id']
     gang_id = g.player['gang_id']
     if not gang_id or g.player['gang_rank'] < 2:
-        flash("You need to be a Capo+ to invite.", 'error')
+        flash(tf("You need to be a Capo+ to invite."), 'error')
         return redirect(url_for('gang.gangs_page'))
     target_name = request.form.get('username', '').strip()
     target = db.execute("SELECT id FROM users WHERE username=?", (target_name,)).fetchone()
     if not target:
-        flash("Player not found.", 'error')
+        flash(tf("Player not found."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     target_p = db.execute("SELECT gang_id FROM players WHERE user_id=?", (target['id'],)).fetchone()
     if target_p['gang_id']:
-        flash("That player is already in a gang.", 'error')
+        flash(tf("That player is already in a gang."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     gang = db.execute("SELECT max_members FROM gangs WHERE id=?", (gang_id,)).fetchone()
     count = db.execute("SELECT COUNT(*) FROM gang_members WHERE gang_id=?", (gang_id,)).fetchone()[0]
     if count >= gang['max_members']:
-        flash("Gang is full.", 'error')
+        flash(tf("Gang is full."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     db.execute("INSERT INTO gang_members(gang_id,user_id,rank) VALUES(?,?,1)", (gang_id, target['id']))
     db.execute("UPDATE players SET gang_id=?, gang_rank=1 WHERE user_id=?", (gang_id, target['id']))
@@ -126,7 +127,7 @@ def kick():
     uid = g.player['user_id']
     gang_id = g.player['gang_id']
     if not gang_id or g.player['gang_rank'] < 3:
-        flash("Only Underboss+ can kick members.", 'error')
+        flash(tf("Only Underboss+ can kick members."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     target_id = int(request.form.get('target_id', 0))
     gang = db.execute("SELECT leader_id FROM gangs WHERE id=?", (gang_id,)).fetchone()
@@ -136,7 +137,7 @@ def kick():
     db.execute("DELETE FROM gang_members WHERE gang_id=? AND user_id=?", (gang_id, target_id))
     db.execute("UPDATE players SET gang_id=NULL, gang_rank=0 WHERE user_id=?", (target_id,))
     db.commit()
-    flash("Member kicked.", 'success')
+    flash(tf("Member kicked."), 'success')
     return redirect(url_for('gang.gang_detail', gang_id=gang_id))
 
 
@@ -147,20 +148,20 @@ def donate():
     uid = g.player['user_id']
     gang_id = g.player['gang_id']
     if not gang_id:
-        flash("Not in a gang.", 'error')
+        flash(tf("Not in a gang."), 'error')
         return redirect(url_for('gang.gangs_page'))
     try:
         amount = int(request.form.get('amount', 0))
     except ValueError:
         amount = 0
     if amount <= 0:
-        flash("Invalid amount.", 'error')
+        flash(tf("Invalid amount."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     db.execute("BEGIN IMMEDIATE")
     p = dict(db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone())
     if p['cash'] < amount:
         db.execute("ROLLBACK")
-        flash("Not enough cash.", 'error')
+        flash(tf("Not enough cash."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     db.execute("UPDATE players SET cash=cash-? WHERE user_id=? AND cash>=?", (amount, uid, amount))
     db.execute("UPDATE gangs SET bank=bank+? WHERE id=?", (amount, gang_id))
@@ -176,16 +177,16 @@ def leave_gang():
     uid = g.player['user_id']
     gang_id = g.player['gang_id']
     if not gang_id:
-        flash("Not in a gang.", 'error')
+        flash(tf("Not in a gang."), 'error')
         return redirect(url_for('gang.gangs_page'))
     gang = db.execute("SELECT leader_id FROM gangs WHERE id=?", (gang_id,)).fetchone()
     if gang['leader_id'] == uid:
-        flash("Leaders must disband the gang or transfer leadership first.", 'error')
+        flash(tf("Leaders must disband the gang or transfer leadership first."), 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     db.execute("DELETE FROM gang_members WHERE gang_id=? AND user_id=?", (gang_id, uid))
     db.execute("UPDATE players SET gang_id=NULL, gang_rank=0 WHERE user_id=?", (uid,))
     db.commit()
-    flash("You left the gang.", 'info')
+    flash(tf("You left the gang."), 'info')
     return redirect(url_for('gang.gangs_page'))
 
 
@@ -210,13 +211,13 @@ def claim_territory(tid):
     uid = g.player['user_id']
     territory = db.execute("SELECT * FROM territories WHERE id=?", (tid,)).fetchone()
     if not territory:
-        flash("Territory not found.", 'error')
+        flash(tf("Territory not found."), 'error')
         return redirect(url_for('gang.territory_page'))
     if territory['owner_user'] == uid:
-        flash("You already own this territory.", 'info')
+        flash(tf("You already own this territory."), 'info')
         return redirect(url_for('gang.territory_page'))
     if territory['owner_user'] is not None or territory['owner_gang'] is not None:
-        flash("This territory is already claimed. Attack the owner to take it.", 'error')
+        flash(tf("This territory is already claimed. Attack the owner to take it."), 'error')
         return redirect(url_for('gang.territory_page'))
     db.execute("UPDATE territories SET owner_user=?, last_collected=datetime('now') WHERE id=?", (uid, tid))
     db.commit()
@@ -246,7 +247,7 @@ def collect_territory(tid):
         elapsed_hours = 0
     income = int(territory['income_per_hour'] * elapsed_hours)
     if income <= 0:
-        flash("Nothing to collect yet.", 'info')
+        flash(tf("Nothing to collect yet."), 'info')
         return redirect(url_for('gang.territory_page'))
     db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (income, uid))
     db.execute("UPDATE territories SET last_collected=? WHERE id=?", (now.isoformat(), tid))

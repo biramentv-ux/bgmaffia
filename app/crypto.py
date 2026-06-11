@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request, jsonify
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import latest_crypto_prices, CRYPTO_BASE
@@ -41,7 +42,7 @@ def buy():
     except ValueError:
         spend = 0
     if sym not in CRYPTO_BASE or spend <= 0:
-        flash("Invalid order.", 'error')
+        flash(tf("Invalid order."), 'error')
         return redirect(url_for('crypto.crypto_page'))
 
     db.execute("BEGIN IMMEDIATE")
@@ -74,7 +75,7 @@ def sell():
     except ValueError:
         amount = 0.0
     if sym not in CRYPTO_BASE or amount <= 0:
-        flash("Invalid order.", 'error')
+        flash(tf("Invalid order."), 'error')
         return redirect(url_for('crypto.crypto_page'))
 
     db.execute("BEGIN IMMEDIATE")

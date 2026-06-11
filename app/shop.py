@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -25,7 +26,7 @@ def buy(item_id):
 
     item = db.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
     if not item:
-        flash("Item not found.", 'error')
+        flash(tf("Item not found."), 'error')
         return redirect(url_for('shop.shop_page'))
 
     db.execute("BEGIN IMMEDIATE")

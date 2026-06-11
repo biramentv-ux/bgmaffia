@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 

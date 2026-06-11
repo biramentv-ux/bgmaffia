@@ -1,31 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Attack{% endblock %}
+{% block title %}{{ t('Attack') }}{% endblock %}
 {% block content %}
-<h2>⚔️ Attack Online Players</h2>
-<p class="muted">Only players currently online and not in jail/hospital/protection can be attacked.</p>
+<h2>⚔️ {{ t('Attack Online Players') }}</h2>
+<p class="muted">{{ t('Only players currently online and not in jail/hospital/protection can be attacked.') }}</p>
 
 {% if targets %}
 <table class="tbl">
   <thead>
     <tr>
-      <th>Player</th><th>Level</th><th>Respect</th><th>HP</th><th>Action</th>
+      <th>{{ t('Player') }}</th><th>{{ t('Level') }}</th><th>{{ t('Respect') }}</th><th>{{ t('HP') }}</th><th>{{ t('Action') }}</th>
     </tr>
   </thead>
   <tbody>
-  {% for t in targets %}
+  {% for target in targets %}
     <tr>
-      <td><a href="{{ url_for('home.profile', uid=t.id) }}">{{ t.username }}</a></td>
-      <td>{{ t.level }}</td>
-      <td>{{ t.respect }}</td>
-      <td>{{ t.health }}</td>
+      <td><a href="{{ url_for('home.profile', uid=target.id) }}">{{ target.username }}</a></td>
+      <td>{{ target.level }}</td>
+      <td>{{ target.respect }}</td>
+      <td>{{ target.health }}</td>
       <td>
-        {% if t.id != player.user_id %}
-        <form method="post" action="{{ url_for('fight.attack', target_id=t.id) }}">
+        {% if target.id != player.user_id %}
+        <form method="post" action="{{ url_for('fight.attack', target_id=target.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-danger btn-sm">Attack</button>
+          <button type="submit" class="btn btn-danger btn-sm">⚔️ {{ t('Attack') }}</button>
         </form>
         {% else %}
-          <span class="muted">You</span>
+          <span class="muted">{{ t('You') }}</span>
         {% endif %}
       </td>
     </tr>
@@ -34,7 +34,7 @@
 </table>
 {% else %}
   <div class="card">
-    <p class="muted">No players online to attack right now. Check back soon!</p>
+    <p class="muted">{{ t('No players online to attack right now. Check back soon!') }}</p>
   </div>
 {% endif %}
 {% endblock %}

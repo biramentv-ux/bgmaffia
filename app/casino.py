@@ -1,5 +1,6 @@
 import random
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request, jsonify
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import mission_progress
@@ -23,17 +24,17 @@ def dice():
         bet   = int(request.form.get('bet', 0))
         guess = int(request.form.get('guess', 0))
     except ValueError:
-        flash("Invalid bet.", 'error')
+        flash(tf("Invalid bet."), 'error')
         return redirect(url_for('casino.casino_page'))
     if bet <= 0 or guess < 1 or guess > 6:
-        flash("Bet must be > 0 and guess must be 1–6.", 'error')
+        flash(tf("Bet must be > 0 and guess must be 1–6."), 'error')
         return redirect(url_for('casino.casino_page'))
 
     db.execute("BEGIN IMMEDIATE")
     player = dict(db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone())
     if player['cash'] < bet:
         db.execute("ROLLBACK")
-        flash("Not enough cash.", 'error')
+        flash(tf("Not enough cash."), 'error')
         return redirect(url_for('casino.casino_page'))
 
     roll = random.randint(1, 6)
@@ -71,14 +72,14 @@ def slots():
     except ValueError:
         bet = 0
     if bet <= 0:
-        flash("Invalid bet.", 'error')
+        flash(tf("Invalid bet."), 'error')
         return redirect(url_for('casino.casino_page'))
 
     db.execute("BEGIN IMMEDIATE")
     player = dict(db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone())
     if player['cash'] < bet:
         db.execute("ROLLBACK")
-        flash("Not enough cash.", 'error')
+        flash(tf("Not enough cash."), 'error')
         return redirect(url_for('casino.casino_page'))
 
     db.execute("UPDATE players SET cash=cash-? WHERE user_id=? AND cash>=?", (bet, uid, bet))
@@ -131,14 +132,14 @@ def bj_start():
     except ValueError:
         bet = 0
     if bet <= 0:
-        flash("Invalid bet.", 'error')
+        flash(tf("Invalid bet."), 'error')
         return redirect(url_for('casino.casino_page'))
 
     db.execute("BEGIN IMMEDIATE")
     player = dict(db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone())
     if player['cash'] < bet:
         db.execute("ROLLBACK")
-        flash("Not enough cash.", 'error')
+        flash(tf("Not enough cash."), 'error')
         return redirect(url_for('casino.casino_page'))
     db.execute("UPDATE players SET cash=cash-? WHERE user_id=? AND cash>=?", (bet, uid, bet))
     db.commit()
@@ -165,7 +166,7 @@ def bj_hit():
     from flask import session
     bj = session.get('bj')
     if not bj:
-        flash("No active blackjack game.", 'error')
+        flash(tf("No active blackjack game."), 'error')
         return redirect(url_for('casino.casino_page'))
     db = get_db()
     uid = g.player['user_id']
@@ -189,7 +190,7 @@ def bj_stand():
     from flask import session
     bj = session.get('bj')
     if not bj:
-        flash("No active blackjack game.", 'error')
+        flash(tf("No active blackjack game."), 'error')
         return redirect(url_for('casino.casino_page'))
     session.pop('bj', None)
     db = get_db()

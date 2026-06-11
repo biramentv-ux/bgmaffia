@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -65,18 +66,18 @@ def place_bounty():
     except ValueError:
         amount = 0
     if amount < 500:
-        flash("Minimum bounty is $500.", 'error')
+        flash(tf("Minimum bounty is $500."), 'error')
         return redirect(url_for('rank.hitlist_page'))
     target = db.execute("SELECT id FROM users WHERE username=?", (target_name,)).fetchone()
     if not target or target['id'] == uid:
-        flash("Player not found.", 'error')
+        flash(tf("Player not found."), 'error')
         return redirect(url_for('rank.hitlist_page'))
 
     db.execute("BEGIN IMMEDIATE")
     p = dict(db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone())
     if p['cash'] < amount:
         db.execute("ROLLBACK")
-        flash("Not enough cash.", 'error')
+        flash(tf("Not enough cash."), 'error')
         return redirect(url_for('rank.hitlist_page'))
 
     db.execute("UPDATE players SET cash=cash-? WHERE user_id=? AND cash>=?", (amount, uid, amount))

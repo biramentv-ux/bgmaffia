@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, g, current_app
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -46,7 +47,7 @@ def claim():
     last = row['last_claimed'] if row else None
     if last == today.isoformat():
         db.execute("ROLLBACK")
-        flash("Already claimed today — come back tomorrow.", 'error')
+        flash(tf("Already claimed today — come back tomorrow."), 'error')
         return redirect(url_for('daily.daily_page'))
 
     streak = (row['streak'] + 1) if (row and last == (today - timedelta(days=1)).isoformat()) else 1

@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, g, current_app
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 
@@ -38,7 +39,7 @@ def buy(biz_id):
     uid = g.player['user_id']
     biz = db.execute("SELECT * FROM businesses WHERE id=?", (biz_id,)).fetchone()
     if not biz:
-        flash("Unknown business.", 'error')
+        flash(tf("Unknown business."), 'error')
         return redirect(url_for('business.business_page'))
     if g.player['level'] < biz['min_level']:
         flash(f"Requires level {biz['min_level']}.", 'error')
@@ -50,7 +51,7 @@ def buy(biz_id):
     cash = db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone()['cash']
     if already:
         db.execute("ROLLBACK")
-        flash("You already own this business.", 'error')
+        flash(tf("You already own this business."), 'error')
         return redirect(url_for('business.business_page'))
     if cash < biz['price']:
         db.execute("ROLLBACK")
@@ -83,7 +84,7 @@ def collect(biz_id):
     earned = _accrued(dict(owned), biz['income_per_hour'], cap)
     if earned <= 0:
         db.execute("ROLLBACK")
-        flash("Nothing to collect yet.", 'error')
+        flash(tf("Nothing to collect yet."), 'error')
         return redirect(url_for('business.business_page'))
 
     db.execute("UPDATE players SET cash=cash+?, total_earned=total_earned+? WHERE user_id=?",

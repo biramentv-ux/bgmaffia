@@ -1,5 +1,6 @@
 import math
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import maybe_level_up, check_achievements, mission_progress
@@ -32,7 +33,7 @@ def gym_page():
 def train():
     stat = request.form.get('stat')
     if stat not in STATS:
-        flash("Invalid stat.", 'error')
+        flash(tf("Invalid stat."), 'error')
         return redirect(url_for('gym.gym_page'))
 
     db = get_db()

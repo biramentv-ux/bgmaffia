@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, g, request
+from .i18n import tf
 from .auth import login_required
 from .db import get_db
 from .game import crime_success_chance, maybe_level_up, mission_progress, check_achievements, _notify
@@ -32,7 +33,7 @@ def commit(crime_id):
 
     crime = db.execute("SELECT * FROM crimes WHERE id=?", (crime_id,)).fetchone()
     if not crime:
-        flash("Crime not found.", 'error')
+        flash(tf("Crime not found."), 'error')
         return redirect(url_for('crimes.crimes_page'))
 
     # All validation inside a transaction
@@ -55,7 +56,7 @@ def commit(crime_id):
     cd = db.execute("SELECT next_at FROM crime_cooldowns WHERE user_id=? AND crime_id=?", (uid, crime_id)).fetchone()
     if cd and cd['next_at'] > now_iso:
         db.execute("ROLLBACK")
-        flash("This crime is still on cooldown.", 'error')
+        flash(tf("This crime is still on cooldown."), 'error')
         return redirect(url_for('crimes.crimes_page'))
 
     # Compute success
