@@ -259,6 +259,59 @@ CREATE TABLE IF NOT EXISTS notifications (
     ts      TEXT DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS daily_rewards (
+    user_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    streak       INTEGER DEFAULT 0,
+    last_claimed TEXT -- UTC date YYYY-MM-DD
+);
+
+CREATE TABLE IF NOT EXISTS crypto_prices (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    symbol TEXT NOT NULL,
+    price  REAL NOT NULL,
+    ts     TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS crypto_holdings (
+    user_id INTEGER NOT NULL,
+    symbol  TEXT NOT NULL,
+    amount  REAL DEFAULT 0,
+    PRIMARY KEY (user_id, symbol)
+);
+
+CREATE TABLE IF NOT EXISTS businesses (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT NOT NULL,
+    descr           TEXT,
+    price           INTEGER NOT NULL,
+    income_per_hour INTEGER NOT NULL,
+    min_level       INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS player_businesses (
+    user_id        INTEGER NOT NULL,
+    business_id    INTEGER NOT NULL REFERENCES businesses(id),
+    bought_at      TEXT DEFAULT (datetime('now')),
+    last_collected TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, business_id)
+);
+
+CREATE TABLE IF NOT EXISTS lottery_draws (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    status    TEXT DEFAULT 'open', -- open|drawn
+    pot       INTEGER DEFAULT 0,
+    winner_id INTEGER,
+    opened_at TEXT DEFAULT (datetime('now')),
+    drawn_at  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS lottery_tickets (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    draw_id INTEGER NOT NULL REFERENCES lottery_draws(id),
+    user_id INTEGER NOT NULL,
+    qty     INTEGER DEFAULT 1
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_chat_ts       ON chat(channel, ts);
 CREATE INDEX IF NOT EXISTS idx_notif_user    ON notifications(user_id, is_read);
@@ -268,3 +321,5 @@ CREATE INDEX IF NOT EXISTS idx_crime_log     ON crime_log(user_id, ts);
 CREATE INDEX IF NOT EXISTS idx_fights_users  ON fights(attacker_id, defender_id, ts);
 CREATE INDEX IF NOT EXISTS idx_messages_to   ON messages(to_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_bounty_target ON bounties(target_id, status);
+CREATE INDEX IF NOT EXISTS idx_crypto_sym    ON crypto_prices(symbol, ts);
+CREATE INDEX IF NOT EXISTS idx_lotto_draw    ON lottery_tickets(draw_id);

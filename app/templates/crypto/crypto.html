@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Crypto Exchange{% endblock %}
+{% block content %}
+<h2>📈 Shadow Exchange</h2>
+<p class="muted">Untraceable coins, volatile prices. Updated every 5 minutes. Buy low, sell high — or lose your shirt.</p>
+
+<div class="crypto-grid">
+{% for c in coins %}
+  <div class="card crypto-card">
+    <div class="crypto-head">
+      <h3>{{ c.name }} <span class="crypto-sym">{{ c.symbol }}</span></h3>
+      <span class="crypto-change {{ 'up' if c.change >= 0 else 'down' }}">
+        {{ '▲' if c.change >= 0 else '▼' }} {{ "%.1f"|format(c.change|abs) }}%
+      </span>
+    </div>
+    <div class="crypto-price">${{ "%.2f"|format(c.price) }}</div>
+    <canvas class="spark" width="260" height="48" data-history="{{ c.history|join(',') }}"></canvas>
+    <div class="stat-row"><span>You hold</span><strong>{{ "%.4f"|format(c.amount) }} {{ c.symbol }}</strong></div>
+    <div class="stat-row"><span>Value</span><strong>${{ "{:,}".format(c.value|int) }}</strong></div>
+
+    <div class="crypto-forms">
+      <form method="post" action="{{ url_for('crypto.buy') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="symbol" value="{{ c.symbol }}">
+        <input type="number" name="spend" min="1" placeholder="$ to spend" required>
+        <button type="submit" class="btn btn-sm">Buy</button>
+      </form>
+      <form method="post" action="{{ url_for('crypto.sell') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="symbol" value="{{ c.symbol }}">
+        <input type="number" name="amount" min="0.0001" step="0.0001" placeholder="coins to sell" required>
+        <button type="submit" class="btn btn-sm btn-red">Sell</button>
+      </form>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('canvas.spark').forEach(cv => {
+  const data = cv.dataset.history.split(',').map(Number).filter(n => !isNaN(n));
+  if (data.length < 2) return;
+  const ctx = cv.getContext('2d');
+  const w = cv.width, h = cv.height, pad = 3;
+  const min = Math.min(...data), max = Math.max(...data), range = (max - min) || 1;
+  const up = data[data.length - 1] >= data[0];
+  ctx.strokeStyle = up ? '#4caf6e' : '#e74c3c';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = pad + i * (w - 2 * pad) / (data.length - 1);
+    const y = h - pad - (v - min) / range * (h - 2 * pad);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Businesses{% endblock %}
+{% block content %}
+<h2>🏢 Front Businesses</h2>
+<p class="muted">Legitimate on paper. Income accrues while you're away (up to {{ cap_hours }}h) — collect whenever you like.</p>
+
+<div class="biz-grid">
+{% for b in businesses %}
+  <div class="card biz-card {{ 'biz-owned' if b.owned }}">
+    <h3>{{ b.name }}</h3>
+    <p class="muted small">{{ b.descr }}</p>
+    <div class="stat-row"><span>Income</span><strong>${{ "{:,}".format(b.income_per_hour) }}/hr</strong></div>
+    {% if b.owned %}
+      <div class="stat-row"><span>Accrued</span><strong class="gold-text">${{ "{:,}".format(b.accrued) }}</strong></div>
+      <form method="post" action="{{ url_for('business.collect', biz_id=b.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-gold {{ 'btn-disabled' if b.accrued <= 0 }}" {{ 'disabled' if b.accrued <= 0 }}>
+          💵 Collect
+        </button>
+      </form>
+    {% else %}
+      <div class="stat-row"><span>Price</span><strong>${{ "{:,}".format(b.price) }}</strong></div>
+      {% if player.level < b.min_level %}
+        <p class="muted small">Requires level {{ b.min_level }}</p>
+      {% else %}
+        <form method="post" action="{{ url_for('business.buy', biz_id=b.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary {{ 'btn-disabled' if player.cash < b.price }}" {{ 'disabled' if player.cash < b.price }}>
+            Buy
+          </button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

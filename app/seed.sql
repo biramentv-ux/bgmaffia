@@ -72,3 +72,20 @@ INSERT OR IGNORE INTO achievements (id,code,name,descr) VALUES
 (8,'respectful',     'Respectful',      'Earn 1000 respect'),
 (9,'territory_king', 'Territory King',  'Own 3 territories simultaneously'),
 (10,'lucky',         'Lucky',           'Win at the casino 10 times');
+
+-- Crypto starting prices (2026 update)
+INSERT INTO crypto_prices (symbol, price)
+SELECT 'SHDW', 100.0 WHERE NOT EXISTS (SELECT 1 FROM crypto_prices WHERE symbol='SHDW');
+INSERT INTO crypto_prices (symbol, price)
+SELECT 'OMRT', 25.0 WHERE NOT EXISTS (SELECT 1 FROM crypto_prices WHERE symbol='OMRT');
+INSERT INTO crypto_prices (symbol, price)
+SELECT 'BLDD', 850.0 WHERE NOT EXISTS (SELECT 1 FROM crypto_prices WHERE symbol='BLDD');
+
+-- Businesses (2026 update)
+INSERT OR IGNORE INTO businesses (id,name,descr,price,income_per_hour,min_level) VALUES
+(1,'Laundromat',      'A quiet front. Cleans more than clothes.',          10000,   120, 1),
+(2,'Pawn Shop',       'Buys low, sells high, asks nothing.',               30000,   350, 4),
+(3,'Pizza Front',     'The pizza is real. The books are not.',             75000,   800, 8),
+(4,'Nightclub',       'Loud music covers a lot of conversations.',        200000,  2000,14),
+(5,'Chop Shop',       'Cars come in, parts go out.',                      450000,  4200,20),
+(6,'Private Casino',  'The house always wins. You are the house.',       1000000,  9000,28);

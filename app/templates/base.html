@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Syndicate Streets{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}" type="image/svg+xml">
+  <meta name="theme-color" content="#1a1a2e">
   {% if player %}<meta name="csrf-token" content="{{ csrf_token() }}">{% endif %}
 </head>
 <body>
@@ -26,11 +29,15 @@
       <li><a href="{{ url_for('shop.shop_page') }}">🛒 Shop</a></li>
       <li><a href="{{ url_for('inventory.inventory_page') }}">🎒 Inventory</a></li>
       <li><a href="{{ url_for('market.market_page') }}">🖤 Black Market</a></li>
+      <li><a href="{{ url_for('crypto.crypto_page') }}">📈 Crypto</a></li>
+      <li><a href="{{ url_for('business.business_page') }}">🏢 Businesses</a></li>
       <li class="nav-sep">GANG</li>
       <li><a href="{{ url_for('gang.gangs_page') }}">👥 Gangs</a></li>
       <li><a href="{{ url_for('gang.territory_page') }}">🗺️ Territory</a></li>
       <li class="nav-sep">MORE</li>
       <li><a href="{{ url_for('casino.casino_page') }}">🎰 Casino</a></li>
+      <li><a href="{{ url_for('lottery.lottery_page') }}">🎟️ Lottery</a></li>
+      <li><a href="{{ url_for('daily.daily_page') }}">🎁 Daily Reward</a></li>
       <li><a href="{{ url_for('missions.missions_page') }}">📋 Missions</a></li>
       <li><a href="{{ url_for('social.mail_page') }}">✉️ Mail</a></li>
       <li><a href="{{ url_for('social.chat_page') }}">💬 Chat</a></li>
@@ -111,6 +118,11 @@
 {% endif %}
 
 <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -34,6 +34,20 @@ def start_scheduler(app):
         """Mark daily missions as resettable (handled lazily per player)."""
         pass  # lazy reset happens when the player visits missions page
 
+    @scheduler.scheduled_job('interval', minutes=5, id='crypto_tick')
+    def crypto_tick_job():
+        with app.app_context():
+            from .db import get_db
+            from .game import tick_crypto
+            tick_crypto(get_db())
+
+    @scheduler.scheduled_job('interval', hours=1, id='lottery_draw')
+    def lottery_draw_job():
+        with app.app_context():
+            from .db import get_db
+            from .game import draw_lottery
+            draw_lottery(get_db(), app.config['LOTTERY_HOUSE_CUT'])
+
     scheduler.start()
     _scheduler = scheduler
     return scheduler

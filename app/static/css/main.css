@@ -288,3 +288,38 @@ code { background: var(--bg2); padding: 1px 5px; border-radius: 3px; font-family
   .dash-grid.two-col, .dash-grid.three-col { grid-template-columns: 1fr; }
   #statbar { flex-wrap: wrap; gap: 10px; }
 }
+
+/* ── 2026 update: daily / crypto / business / lottery ─────────────── */
+.streak-num, .pot-num {
+  font-size: 52px; font-weight: bold; color: var(--gold);
+  text-align: center; margin: 10px 0;
+}
+.daily-card, .lotto-card { text-align: center; }
+.daily-card form, .lotto-card form { margin-top: 14px; }
+.btn-big { font-size: 16px; padding: 12px 24px; }
+
+.crypto-grid, .biz-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px; margin-top: 16px;
+}
+.crypto-head { display: flex; justify-content: space-between; align-items: baseline; }
+.crypto-sym { color: var(--muted); font-size: 13px; font-weight: normal; }
+.crypto-price { font-size: 30px; font-weight: bold; margin: 6px 0; }
+.crypto-change.up   { color: #4caf6e; }
+.crypto-change.down { color: var(--red); }
+canvas.spark { display: block; width: 100%; height: 48px; margin: 8px 0; }
+.crypto-forms { display: flex; gap: 8px; margin-top: 10px; }
+.crypto-forms form { display: flex; gap: 6px; flex: 1; }
+.crypto-forms input[type=number] { width: 100%; min-width: 0; }
+
+.biz-owned { border-color: var(--gold); }
+.gold-text { color: var(--gold); }
+
+.lotto-form { display: flex; gap: 8px; justify-content: center; }
+.lotto-form input[type=number] { width: 80px; }
+
+@keyframes flash-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.flash { animation: flash-in 0.25s ease-out; }

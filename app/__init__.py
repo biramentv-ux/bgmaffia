@@ -98,11 +98,21 @@ def create_app(config=None):
     from .missions  import bp as missions_bp
     from .rank      import bp as rank_bp
     from .admin     import bp as admin_bp
+    from .daily     import bp as daily_bp
+    from .crypto    import bp as crypto_bp
+    from .business  import bp as business_bp
+    from .lottery   import bp as lottery_bp
 
     for bp in [auth_bp, home_bp, crimes_bp, gym_bp, fight_bp, hospital_bp,
                jail_bp, bank_bp, shop_bp, inventory_bp, market_bp, gang_bp,
-               casino_bp, social_bp, missions_bp, rank_bp, admin_bp]:
+               casino_bp, social_bp, missions_bp, rank_bp, admin_bp,
+               daily_bp, crypto_bp, business_bp, lottery_bp]:
         app.register_blueprint(bp)
+
+    # Serve the service worker from the root so it can control the whole app
+    @app.route('/sw.js')
+    def service_worker():
+        return app.send_static_file('sw.js')
 
     # ── Start scheduler ──────────────────────────────────────────────────
     from .scheduler import start_scheduler

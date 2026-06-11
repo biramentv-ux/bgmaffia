@@ -369,3 +369,67 @@ def apply_bank_interest(db, rate=0.005):
             db.execute("INSERT INTO bank_log(user_id,kind,amount) VALUES(?,?,?)",
                        (p['user_id'], 'interest', interest))
     db.commit()
+
+
+# ── Crypto market (2026 update) ─────────────────────────────────────────
+CRYPTO_BASE = {'SHDW': 100.0, 'OMRT': 25.0, 'BLDD': 850.0}
+
+
+def latest_crypto_prices(db):
+    """Return {symbol: price} using the most recent row per symbol."""
+    rows = db.execute(
+        "SELECT symbol, price FROM crypto_prices p "
+        "WHERE id = (SELECT MAX(id) FROM crypto_prices WHERE symbol = p.symbol)"
+    ).fetchall()
+    return {r['symbol']: r['price'] for r in rows}
+
+
+def tick_crypto(db):
+    """Random-walk each coin with mild mean reversion toward its base price."""
+    prices = latest_crypto_prices(db)
+    for sym, base in CRYPTO_BASE.items():
+        cur = prices.get(sym, base)
+        drift = (base - cur) / base * 0.01          # pull back toward base
+        shock = random.gauss(0, 0.03)               # ±3% volatility per tick
+        new = max(base * 0.05, cur * (1 + drift + shock))
+        db.execute("INSERT INTO crypto_prices(symbol, price) VALUES(?,?)",
+                   (sym, round(new, 2)))
+    # keep one week of history
+    db.execute("DELETE FROM crypto_prices WHERE ts < datetime('now', '-7 days')")
+    db.commit()
+
+
+# ── Lottery (2026 update) ────────────────────────────────────────────────
+def get_open_draw(db):
+    """Return the current open draw, creating one if needed."""
+    row = db.execute("SELECT * FROM lottery_draws WHERE status='open' ORDER BY id DESC LIMIT 1").fetchone()
+    if row:
+        return row
+    db.execute("INSERT INTO lottery_draws(status) VALUES('open')")
+    db.commit()
+    return db.execute("SELECT * FROM lottery_draws WHERE status='open' ORDER BY id DESC LIMIT 1").fetchone()
+
+
+def draw_lottery(db, house_cut=0.10):
+    """Close the open draw: pick a ticket-weighted winner, pay out, open a new draw."""
+    draw = db.execute("SELECT * FROM lottery_draws WHERE status='open' ORDER BY id DESC LIMIT 1").fetchone()
+    if not draw:
+        return
+    tickets = db.execute(
+        "SELECT user_id, qty FROM lottery_tickets WHERE draw_id=?", (draw['id'],)
+    ).fetchall()
+    if not tickets:
+        # nothing sold yet — keep the draw open
+        return
+    pool = []
+    for t in tickets:
+        pool.extend([t['user_id']] * t['qty'])
+    winner = random.choice(pool)
+    prize = int(draw['pot'] * (1 - house_cut))
+    db.execute("BEGIN IMMEDIATE")
+    db.execute("UPDATE lottery_draws SET status='drawn', winner_id=?, drawn_at=datetime('now') WHERE id=? AND status='open'",
+               (winner, draw['id']))
+    db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (prize, winner))
+    _notify(db, winner, f"🎟️ You WON the lottery! ${prize:,} in cash.")
+    db.execute("INSERT INTO lottery_draws(status) VALUES('open')")
+    db.commit()
