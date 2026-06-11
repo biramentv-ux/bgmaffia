@@ -66,6 +66,7 @@ def profile(uid):
         armor = db.execute("SELECT name FROM items WHERE id=?", (player['equipped_armor'],)).fetchone()
     return render_template('home/profile.html',
                            puser=user, player=dict(player),
+                           viewer_id=g.player['user_id'],
                            achievements=achievements,
                            gang=gang,
                            weapon=weapon, car=car, dog=dog, armor=armor)

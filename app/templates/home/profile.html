@@ -28,7 +28,7 @@
     </div>
   </div>
 
-  {% if puser.id != player.user_id %}
+  {% if puser.id != viewer_id %}
   <div class="profile-actions">
     <form method="post" action="{{ url_for('fight.attack', target_id=puser.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
