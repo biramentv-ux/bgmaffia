@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<h2>⚙️ Admin Panel</h2>
+
+<div class="dash-grid">
+  <div class="card">
+    <h3>📊 Today's Stats</h3>
+    <div class="stat-row"><span>Total Users</span><strong>{{ stats.users }}</strong></div>
+    <div class="stat-row"><span>Active Today</span><strong>{{ stats.active_today }}</strong></div>
+    <div class="stat-row"><span>Crimes Today</span><strong>{{ stats.crimes_today }}</strong></div>
+    <div class="stat-row"><span>Fights Today</span><strong>{{ stats.fights_today }}</strong></div>
+  </div>
+  <div class="card">
+    <h3>⚠️ Danger Zone</h3>
+    <form method="post" action="{{ url_for('admin.reset_db') }}" onsubmit="return confirm('RESET entire database?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-danger">🗑️ Reset Database</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <h3>👤 Users</h3>
+  <table class="tbl">
+    <thead><tr><th>ID</th><th>Username</th><th>Level</th><th>Wealth</th><th>Last Active</th><th>Banned</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr class="{{ 'row-banned' if u.is_banned }}">
+        <td>{{ u.id }}</td>
+        <td><a href="{{ url_for('home.profile', uid=u.id) }}">{{ u.username }}</a>{% if u.is_admin %} <span class="tag tag-admin">ADMIN</span>{% endif %}</td>
+        <td>{{ u.level }}</td>
+        <td>${{ "{:,}".format(u.wealth) }}</td>
+        <td class="muted small">{{ (u.last_active or '')[:16] }}</td>
+        <td>{{ '✅' if u.is_banned else '' }}</td>
+        <td>
+          {% if not u.is_banned %}
+          <form method="post" action="{{ url_for('admin.ban_user', uid=u.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-danger">Ban</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('admin.unban_user', uid=u.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm">Unban</button>
+          </form>
+          {% endif %}
+          {% if not u.is_admin %}
+          <form method="post" action="{{ url_for('admin.grant_admin', uid=u.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-gold">Grant Admin</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>💰 Crime Balance</h3>
+  <table class="tbl">
+    <thead><tr><th>Crime</th><th>Success%</th><th>Min Pay</th><th>Max Pay</th><th>Edit</th></tr></thead>
+    <tbody>
+    {% for c in crimes %}
+      <tr>
+        <form method="post" action="{{ url_for('admin.edit_crime') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="crime_id" value="{{ c.id }}">
+          <td>{{ c.name }}</td>
+          <td><input type="number" name="base_success" value="{{ c.base_success }}" step="0.01" min="0" max="1" style="width:70px"></td>
+          <td><input type="number" name="payout_min" value="{{ c.payout_min }}" style="width:80px"></td>
+          <td><input type="number" name="payout_max" value="{{ c.payout_max }}" style="width:80px"></td>
+          <td><button type="submit" class="btn btn-sm">Save</button></td>
+        </form>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

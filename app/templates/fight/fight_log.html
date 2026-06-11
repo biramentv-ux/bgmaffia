@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Fight Log{% endblock %}
+{% block content %}
+<h2>⚔️ Fight #{{ fight.id }}</h2>
+<div class="card">
+  <div class="fight-result">
+    <div class="fighter">
+      <p>Attacker</p>
+      <strong><a href="{{ url_for('home.profile', uid=fight.attacker_id) }}">{{ fight.atk_name }}</a></strong>
+    </div>
+    <div class="vs">VS</div>
+    <div class="fighter">
+      <p>Defender</p>
+      <strong><a href="{{ url_for('home.profile', uid=fight.defender_id) }}">{{ fight.def_name }}</a></strong>
+    </div>
+  </div>
+  <hr>
+  <div class="fight-details">
+    <div class="stat-row"><span>Winner</span>
+      <strong>
+        {% if fight.winner_id == fight.attacker_id %}{{ fight.atk_name }}
+        {% elif fight.winner_id == fight.defender_id %}{{ fight.def_name }}
+        {% else %}Stalemate{% endif %}
+      </strong>
+    </div>
+    <div class="stat-row"><span>Turns</span><strong>{{ fight.turns }}</strong></div>
+    <div class="stat-row"><span>Cash Stolen</span><strong>{% if fight.cash_stolen %}${{ "{:,}".format(fight.cash_stolen) }}{% else %}–{% endif %}</strong></div>
+    <div class="stat-row"><span>Respect Gained</span><strong>{{ fight.respect_gain }}</strong></div>
+    <div class="stat-row"><span>Outcome</span><strong>{{ fight.outcome }}</strong></div>
+    <div class="stat-row"><span>Time</span><strong class="muted">{{ fight.ts[:16] }}</strong></div>
+  </div>
+  <a href="{{ url_for('fight.attack_page') }}" class="btn btn-sm" style="margin-top:16px">← Back to Attack</a>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Hitlist{% endblock %}
+{% block content %}
+<h2>☠️ Hitlist</h2>
+
+<div class="card">
+  <h3>Place a Bounty</h3>
+  <form method="post" action="{{ url_for('rank.place_bounty') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-row">
+      <input type="text" name="target" placeholder="Target username" required>
+      <input type="number" name="amount" placeholder="Bounty ($)" min="500" required>
+      <button type="submit" class="btn btn-danger">Place Bounty</button>
+    </div>
+  </form>
+  <p class="muted small">Minimum $500. Bounty expires in 3 days.</p>
+</div>
+
+{% if bounties %}
+<div class="card">
+  <h3>Active Bounties</h3>
+  <table class="tbl">
+    <thead><tr><th>Target</th><th>Level</th><th>Bounty</th><th>Placed By</th><th>Expires</th><th>Attack</th></tr></thead>
+    <tbody>
+    {% for b in bounties %}
+      <tr>
+        <td><a href="{{ url_for('home.profile', uid=b.target_id) }}">{{ b.target_name }}</a></td>
+        <td>{{ b.target_level }}</td>
+        <td class="gold">${{ "{:,}".format(b.amount) }}</td>
+        <td>{{ b.placer_name }}</td>
+        <td class="muted small">{{ b.expires_at[:10] if b.expires_at else '–' }}</td>
+        <td>
+          {% if b.target_id != player.user_id %}
+          <form method="post" action="{{ url_for('fight.attack', target_id=b.target_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-danger">⚔️ Attack</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted">No active bounties.</p></div>
+{% endif %}
+{% endblock %}

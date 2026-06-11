@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Login – Syndicate Streets{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>⚔️ Syndicate Streets</h1>
+  <p class="tagline">Enter the underworld. Respect is everything.</p>
+  <form method="post" action="{{ url_for('auth.login') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Username</label>
+    <input type="text" name="username" required autofocus autocomplete="username">
+    <label>Password</label>
+    <input type="password" name="password" required autocomplete="current-password">
+    <button type="submit" class="btn btn-primary">Enter the Streets</button>
+  </form>
+  <p class="auth-link">No account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+</div>
+{% endblock %}

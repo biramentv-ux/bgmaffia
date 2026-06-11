@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Gym{% endblock %}
+{% block content %}
+<h2>💪 Gym Training</h2>
+<p class="muted">Spend energy to increase your stats. Energy: {{ player.energy }}/{{ player.energy_max }}</p>
+
+<div class="gym-grid">
+{% for stat in stats %}
+  {% set cost = costs[stat] %}
+  {% set label, descr = labels[stat] %}
+  <div class="gym-card">
+    <div class="gym-stat-name">{{ label }}</div>
+    <div class="gym-stat-val">{{ player[stat] }}</div>
+    <div class="gym-descr muted small">{{ descr }}</div>
+    <div class="gym-cost muted">Cost: {{ cost }} energy</div>
+    <form method="post" action="{{ url_for('gym.train') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="stat" value="{{ stat }}">
+      <button type="submit" class="btn btn-primary {{ 'btn-disabled' if player.energy < cost }}" {{ 'disabled' if player.energy < cost }}>
+        Train (+1)
+      </button>
+    </form>
+  </div>
+{% endfor %}
+</div>
+
+<div class="card" style="margin-top:20px">
+  <h3>📌 Training Notes</h3>
+  <ul class="info-list">
+    <li>Training cost rises as your stat increases: <code>ceil(stat / 4)</code> energy</li>
+    <li>Strength & Stamina improve combat performance</li>
+    <li>Intellect improves success on smart crimes (kiosk, racketeering)</li>
+    <li>Skill points (awarded on level-up) are automatically applied</li>
+  </ul>
+</div>
+{% endblock %}

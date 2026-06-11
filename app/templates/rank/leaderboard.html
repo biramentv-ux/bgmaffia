@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<h2>🏆 Leaderboard</h2>
+<div class="dash-grid three-col">
+
+  <div class="card">
+    <h3>⭐ By Respect</h3>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Player</th><th>Level</th><th>Respect</th></tr></thead>
+      <tbody>
+      {% for i, p in enumerate(by_respect) %}
+        <tr class="{{ 'row-highlight' if p.username == (player.username if player else '') }}">
+          <td>{{ i+1 }}</td>
+          <td><a href="{{ url_for('home.profile', uid=loop.index) }}">{{ p.username }}</a></td>
+          <td>{{ p.level }}</td>
+          <td>{{ p.respect }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>📊 By Level</h3>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Player</th><th>Level</th><th>Respect</th></tr></thead>
+      <tbody>
+      {% for i, p in enumerate(by_level) %}
+        <tr>
+          <td>{{ i+1 }}</td>
+          <td>{{ p.username }}</td>
+          <td>{{ p.level }}</td>
+          <td>{{ p.respect }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>💰 By Wealth</h3>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Player</th><th>Level</th><th>Wealth</th></tr></thead>
+      <tbody>
+      {% for i, p in enumerate(by_wealth) %}
+        <tr>
+          <td>{{ i+1 }}</td>
+          <td>{{ p.username }}</td>
+          <td>{{ p.level }}</td>
+          <td>${{ "{:,}".format(p.wealth) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

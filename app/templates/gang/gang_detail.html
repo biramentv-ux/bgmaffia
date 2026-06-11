@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{{ gang.name }}{% endblock %}
+{% block content %}
+<h2>👥 [{{ gang.tag }}] {{ gang.name }}</h2>
+
+<div class="dash-grid">
+  <div class="card">
+    <h3>📊 Gang Info</h3>
+    <div class="stat-row"><span>Respect</span><strong>{{ gang.respect }}</strong></div>
+    <div class="stat-row"><span>Bank</span><strong>${{ "{:,}".format(gang.bank) }}</strong></div>
+    <div class="stat-row"><span>HQ Level</span><strong>{{ gang.hq_level }}</strong></div>
+    <div class="stat-row"><span>Members</span><strong>{{ members|length }}/{{ gang.max_members }}</strong></div>
+    {% if is_member %}
+    <form method="post" action="{{ url_for('gang.donate') }}" style="margin-top:12px">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="input-row">
+        <input type="number" name="amount" placeholder="Donate $" min="1" max="{{ player.cash }}">
+        <button type="submit" class="btn btn-sm">💰 Donate</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if is_member and my_rank >= 2 %}
+  <div class="card">
+    <h3>➕ Invite Member</h3>
+    <form method="post" action="{{ url_for('gang.invite') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="username" placeholder="Player username" required>
+      <button type="submit" class="btn btn-sm btn-primary">Invite</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>👥 Members</h3>
+  <table class="tbl">
+    <thead><tr><th>Player</th><th>Level</th><th>Respect</th><th>Rank</th><th>Online</th>
+      {% if is_member and my_rank >= 3 %}<th>Kick</th>{% endif %}
+    </tr></thead>
+    <tbody>
+    {% for m in members %}
+      <tr>
+        <td><a href="{{ url_for('home.profile', uid=m.id) }}">{{ m.username }}</a></td>
+        <td>{{ m.level }}</td>
+        <td>{{ m.respect }}</td>
+        <td>{{ ranks.get(m.rank, 'Associate') }}</td>
+        <td>{{ '🟢' if m.last_active and m.last_active >= (now_iso[:10]) else '⚫' }}</td>
+        {% if is_member and my_rank >= 3 and m.id != gang.leader_id %}
+        <td>
+          <form method="post" action="{{ url_for('gang.kick') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="target_id" value="{{ m.id }}">
+            <button type="submit" class="btn btn-sm btn-danger">Kick</button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if is_member and gang.leader_id != player.user_id %}
+  <form method="post" action="{{ url_for('gang.leave_gang') }}" style="margin-top:12px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Leave gang?')">Leave Gang</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if territories %}
+<div class="card">
+  <h3>🗺️ Controlled Territories</h3>
+  <ul>{% for t in territories %}<li>{{ t.name }} – ${{ t.income_per_hour }}/hr</li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% endblock %}

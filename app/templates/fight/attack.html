@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Attack{% endblock %}
+{% block content %}
+<h2>⚔️ Attack Online Players</h2>
+<p class="muted">Only players currently online and not in jail/hospital/protection can be attacked.</p>
+
+{% if targets %}
+<table class="tbl">
+  <thead>
+    <tr>
+      <th>Player</th><th>Level</th><th>Respect</th><th>HP</th><th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for t in targets %}
+    <tr>
+      <td><a href="{{ url_for('home.profile', uid=t.id) }}">{{ t.username }}</a></td>
+      <td>{{ t.level }}</td>
+      <td>{{ t.respect }}</td>
+      <td>{{ t.health }}</td>
+      <td>
+        {% if t.id != player.user_id %}
+        <form method="post" action="{{ url_for('fight.attack', target_id=t.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm">Attack</button>
+        </form>
+        {% else %}
+          <span class="muted">You</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <div class="card">
+    <p class="muted">No players online to attack right now. Check back soon!</p>
+  </div>
+{% endif %}
+{% endblock %}

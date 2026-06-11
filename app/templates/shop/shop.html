@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Shop{% endblock %}
+{% block content %}
+<h2>🛒 Syndicate Supply</h2>
+<p class="muted">Cash on hand: ${{ "{:,}".format(player.cash) }}</p>
+
+{% set types = ['weapon', 'car', 'dog', 'armor', 'consumable'] %}
+{% set type_labels = {'weapon':'⚔️ Weapons','car':'🚗 Cars','dog':'🐕 Dogs','armor':'🛡️ Armor','consumable':'🍺 Consumables'} %}
+{% for t in types %}
+  {% set t_items = items | selectattr('type','equalto',t) | list %}
+  {% if t_items %}
+  <div class="card">
+    <h3>{{ type_labels[t] }}</h3>
+    <table class="tbl">
+      <thead><tr><th>Item</th><th>ATK</th><th>DEF</th><th>Min Lv</th><th>Price</th><th>Buy</th></tr></thead>
+      <tbody>
+      {% for item in t_items %}
+        <tr>
+          <td><strong>{{ item.name }}</strong></td>
+          <td>{{ '+'+item.atk|string if item.atk else '–' }}</td>
+          <td>{{ '+'+item.def|string if item.def else '–' }}</td>
+          <td>{{ item.min_level }}</td>
+          <td>${{ "{:,}".format(item.price) }}</td>
+          <td>
+            <form method="post" action="{{ url_for('shop.buy', item_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm {{ 'btn-disabled' if player.cash < item.price }}"
+                      {{ 'disabled' if player.cash < item.price }}>Buy</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+{% endfor %}
+{% endblock %}

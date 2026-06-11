@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Blackjack{% endblock %}
+{% block content %}
+<h2>🃏 Blackjack – Bet: ${{ "{:,}".format(bet) }}</h2>
+<div class="card bj-card">
+  <div class="bj-hands">
+    <div class="bj-hand">
+      <h4>Your Hand ({{ pv }})</h4>
+      <div class="cards">{% for c in player_hand %}<span class="card-chip">{{ c }}</span>{% endfor %}</div>
+    </div>
+    <div class="bj-hand">
+      <h4>Dealer Hand</h4>
+      <div class="cards">{% for c in dealer_visible %}<span class="card-chip">{{ c }}</span>{% endfor %}</div>
+    </div>
+  </div>
+  <div class="bj-actions">
+    <form method="post" action="{{ url_for('casino.bj_hit') }}" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-primary">Hit</button>
+    </form>
+    <form method="post" action="{{ url_for('casino.bj_stand') }}" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-secondary">Stand</button>
+    </form>
+    <a href="{{ url_for('casino.casino_page') }}" class="btn btn-sm">Forfeit</a>
+  </div>
+</div>
+{% endblock %}

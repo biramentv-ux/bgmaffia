@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Missions{% endblock %}
+{% block content %}
+<h2>📋 Missions</h2>
+
+<div class="missions-grid">
+{% for m in missions %}
+  <div class="mission-card {{ 'completed' if m.completed else '' }}">
+    <div class="mission-title">
+      {{ '📅' if m.is_daily else '🏅' }}
+      {{ m.descr }}
+      {% if m.is_daily %}<span class="tag tag-daily">Daily</span>{% endif %}
+    </div>
+    <div class="mission-progress">
+      <div class="prog-bar-wrap">
+        <div class="prog-bar" style="width:{{ [(m.progress / m.target * 100)|int, 100]|min }}%"></div>
+      </div>
+      <span class="muted small">{{ m.progress }}/{{ m.target }}</span>
+    </div>
+    <div class="mission-reward muted small">
+      Reward:
+      {% if m.reward.cash %}💵 ${{ "{:,}".format(m.reward.cash) }}{% endif %}
+      {% if m.reward.xp %}✨ {{ m.reward.xp }} XP{% endif %}
+      {% if m.reward.respect %}⭐ {{ m.reward.respect }} respect{% endif %}
+      {% if m.reward.gold %}💛 {{ m.reward.gold }} Gold{% endif %}
+    </div>
+    {% if m.completed %}
+    <div class="mission-done">✅ Complete!</div>
+    {% endif %}
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

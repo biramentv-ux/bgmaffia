@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Casino{% endblock %}
+{% block content %}
+<h2>🎰 Casino</h2>
+<p class="muted">Cash on hand: ${{ "{:,}".format(player.cash) }}</p>
+
+<div class="casino-grid">
+  <!-- Dice -->
+  <div class="card casino-card">
+    <h3>🎲 Dice Roll</h3>
+    <p class="muted small">Guess 1–6. Win 5× your bet.</p>
+    <form method="post" action="{{ url_for('casino.dice') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="number" name="bet" placeholder="Bet ($)" min="1" max="{{ player.cash }}" required>
+      <input type="number" name="guess" placeholder="Guess (1–6)" min="1" max="6" required>
+      <button type="submit" class="btn btn-gold">Roll!</button>
+    </form>
+  </div>
+
+  <!-- Slots -->
+  <div class="card casino-card">
+    <h3>🎰 Slots</h3>
+    <p class="muted small">Three matching symbols → win big.</p>
+    <table class="tbl" style="font-size:0.75em">
+      <tr><td>💎💎💎</td><td>×50</td></tr>
+      <tr><td>7️⃣7️⃣7️⃣</td><td>×20</td></tr>
+      <tr><td>⭐⭐⭐</td><td>×10</td></tr>
+      <tr><td>🍒🍒🍒</td><td>×5</td></tr>
+    </table>
+    <form method="post" action="{{ url_for('casino.slots') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="number" name="bet" placeholder="Bet ($)" min="1" max="{{ player.cash }}" required>
+      <button type="submit" class="btn btn-gold">Spin!</button>
+    </form>
+  </div>
+
+  <!-- Blackjack -->
+  <div class="card casino-card">
+    <h3>🃏 Blackjack</h3>
+    <p class="muted small">Beat the dealer. Blackjack pays 2.5×.</p>
+    <form method="post" action="{{ url_for('casino.bj_start') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="number" name="bet" placeholder="Bet ($)" min="1" max="{{ player.cash }}" required>
+      <button type="submit" class="btn btn-gold">Deal!</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

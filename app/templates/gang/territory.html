@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Territory{% endblock %}
+{% block content %}
+<h2>🗺️ City Territory</h2>
+<p class="muted">Claim unclaimed territories. Owned spots generate passive income.</p>
+
+<div class="territory-grid">
+{% for t in territories %}
+  <div class="territory-card {{ 'owned' if t.owner_user == player.user_id or t.owner_gang == player.gang_id else '' }}">
+    <div class="terr-name">{{ t.name }}</div>
+    <div class="terr-type muted">{{ t.type }}</div>
+    <div class="terr-income">💰 ${{ t.income_per_hour }}/hr</div>
+    {% if t.owner_user %}
+      <div class="terr-owner">Owned by <a href="{{ url_for('home.profile', uid=t.owner_user) }}">{{ t.owner_name }}</a></div>
+    {% elif t.owner_gang %}
+      <div class="terr-owner">Gang: {{ t.gang_name }}</div>
+    {% else %}
+      <div class="terr-owner muted">Unclaimed</div>
+    {% endif %}
+
+    {% if t.owner_user == player.user_id %}
+      <form method="post" action="{{ url_for('gang.collect_territory', tid=t.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-gold">💰 Collect</button>
+      </form>
+    {% elif t.owner_user is none and t.owner_gang is none %}
+      <form method="post" action="{{ url_for('gang.claim_territory', tid=t.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-primary">🏴 Claim</button>
+      </form>
+    {% endif %}
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

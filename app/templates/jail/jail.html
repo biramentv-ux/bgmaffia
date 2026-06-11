@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Jail{% endblock %}
+{% block content %}
+<h2>🔒 City Jail</h2>
+{% if in_jail %}
+<div class="card lockout-card">
+  <p class="lockout-icon">🔒</p>
+  <h3>You are serving your sentence</h3>
+  <p>Release in: <strong><span class="countdown" data-until="{{ jail_until }}"></span></strong></p>
+  <p class="muted">Approx. {{ minutes_left }} minute{{ 's' if minutes_left != 1 }} remaining</p>
+  {% if bail_cost > 0 %}
+  <form method="post" action="{{ url_for('jail.bail') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-primary {{ 'btn-disabled' if player.cash < bail_cost }}" {{ 'disabled' if player.cash < bail_cost }}>
+      💸 Post Bail: ${{ "{:,}".format(bail_cost) }}
+    </button>
+  </form>
+  <p class="muted small">(You have ${{ "{:,}".format(player.cash) }} on hand)</p>
+  {% else %}
+  <p class="muted">Your sentence ends soon – wait it out.</p>
+  {% endif %}
+</div>
+{% else %}
+<div class="card">
+  <p>You are not in jail. <a href="{{ url_for('home.dashboard') }}">Return to dashboard.</a></p>
+</div>
+{% endif %}
+
+{% if inmates %}
+<div class="card">
+  <h3>🧑‍🤝‍🧑 Inmates</h3>
+  <p class="muted">Bust them out for {{ 2 }} nerve</p>
+  <table class="tbl">
+    <thead><tr><th>Player</th><th>Level</th><th>Sentence Ends</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for i in inmates %}
+      <tr>
+        <td><a href="{{ url_for('home.profile', uid=i.id) }}">{{ i.username }}</a></td>
+        <td>{{ i.level }}</td>
+        <td><span class="countdown" data-until="{{ i.jail_until }}"></span></td>
+        <td>
+          {% if not in_jail %}
+          <form method="post" action="{{ url_for('jail.bust', target_id=i.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm {{ 'btn-disabled' if player.nerve < 2 }}" {{ 'disabled' if player.nerve < 2 }}>
+              🔓 Bust
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

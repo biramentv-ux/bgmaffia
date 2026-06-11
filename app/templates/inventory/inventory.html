@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Inventory{% endblock %}
+{% block content %}
+<h2>🎒 Inventory</h2>
+<div class="card equipped-card">
+  <h3>🔧 Equipped</h3>
+  <div class="equip-grid">
+    <div class="equip-slot"><span>⚔️ Weapon</span>
+      {% if equipped.weapon %}
+        {% for i in inv %}{% if i.item_id == equipped.weapon %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
+      {% else %}<em class="muted">None</em>{% endif %}
+    </div>
+    <div class="equip-slot"><span>🚗 Car</span>
+      {% if equipped.car %}
+        {% for i in inv %}{% if i.item_id == equipped.car %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
+      {% else %}<em class="muted">None</em>{% endif %}
+    </div>
+    <div class="equip-slot"><span>🐕 Dog</span>
+      {% if equipped.dog %}
+        {% for i in inv %}{% if i.item_id == equipped.dog %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
+      {% else %}<em class="muted">None</em>{% endif %}
+    </div>
+    <div class="equip-slot"><span>🛡️ Armor</span>
+      {% if equipped.armor %}
+        {% for i in inv %}{% if i.item_id == equipped.armor %}<strong>{{ i.name }}</strong>{% endif %}{% endfor %}
+      {% else %}<em class="muted">None</em>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if inv %}
+<div class="card">
+  <h3>📦 All Items ({{ inv|length }})</h3>
+  <table class="tbl">
+    <thead><tr><th>Item</th><th>Type</th><th>ATK</th><th>DEF</th><th>Qty</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for i in inv %}
+      <tr>
+        <td><strong>{{ i.name }}</strong>
+          {% if i.item_id == equipped.weapon or i.item_id == equipped.car or i.item_id == equipped.dog or i.item_id == equipped.armor %}
+            <span class="tag tag-equipped">equipped</span>
+          {% endif %}
+        </td>
+        <td class="muted">{{ i.type }}</td>
+        <td>{{ '+'+i.atk|string if i.atk else '–' }}</td>
+        <td>{{ '+'+i.def|string if i.def else '–' }}</td>
+        <td>{{ i.qty }}</td>
+        <td>
+          {% if i.type in ('weapon','car','dog','armor') %}
+          <form method="post" action="{{ url_for('inventory.equip', inv_id=i.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm">Equip</button>
+          </form>
+          {% elif i.type == 'consumable' %}
+          <form method="post" action="{{ url_for('inventory.use_item', inv_id=i.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-gold">Use</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('market.list_item') }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="inv_id" value="{{ i.id }}">
+            <input type="number" name="price" placeholder="List price" min="1" style="width:90px;display:inline">
+            <button type="submit" class="btn btn-sm">List</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted">Inventory empty. <a href="{{ url_for('shop.shop_page') }}">Visit the shop.</a></p></div>
+{% endif %}
+{% endblock %}

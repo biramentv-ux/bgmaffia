@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Black Market{% endblock %}
+{% block content %}
+<h2>🖤 Black Market</h2>
+<p class="muted">Player-to-player listings. Cash: ${{ "{:,}".format(player.cash) }}</p>
+
+{% if listings %}
+<div class="card">
+  <h3>📦 Active Listings</h3>
+  <table class="tbl">
+    <thead><tr><th>Item</th><th>Type</th><th>ATK</th><th>DEF</th><th>Seller</th><th>Price</th><th>Buy</th></tr></thead>
+    <tbody>
+    {% for l in listings %}
+      <tr>
+        <td><strong>{{ l.name }}</strong></td>
+        <td class="muted">{{ l.type }}</td>
+        <td>{{ '+'+l.atk|string if l.atk else '–' }}</td>
+        <td>{{ '+'+l.def|string if l.def else '–' }}</td>
+        <td><a href="{{ url_for('home.profile', uid=l.seller_id) }}">{{ l.seller_name }}</a></td>
+        <td>${{ "{:,}".format(l.price) }}</td>
+        <td>
+          {% if l.seller_id != player.user_id %}
+          <form method="post" action="{{ url_for('market.buy_listing', listing_id=l.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm {{ 'btn-disabled' if player.cash < l.price }}" {{ 'disabled' if player.cash < l.price }}>
+              Buy
+            </button>
+          </form>
+          {% else %}<span class="muted">Yours</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted">No listings right now. Be the first to list something!</p></div>
+{% endif %}
+
+{% if my_listings %}
+<div class="card">
+  <h3>📋 Your Listings</h3>
+  <table class="tbl">
+    <thead><tr><th>Item</th><th>Price</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for l in my_listings %}
+      <tr>
+        <td>{{ l.name }}</td>
+        <td>${{ "{:,}".format(l.price) }}</td>
+        <td>
+          <form method="post" action="{{ url_for('market.cancel_listing', listing_id=l.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
