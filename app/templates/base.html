@@ -18,54 +18,58 @@
   <nav id="sidenav">
     <div class="logo">⚔️ SYNDICATE<br><span>STREETS</span></div>
     <ul>
-      <li><a href="{{ url_for('home.dashboard') }}">🏠 Dashboard</a></li>
-      <li><a href="{{ url_for('home.profile', uid=player.user_id) }}">👤 Profile</a></li>
-      <li class="nav-sep">HUSTLE</li>
-      <li><a href="{{ url_for('crimes.crimes_page') }}">💰 Crimes</a></li>
-      <li><a href="{{ url_for('gym.gym_page') }}">💪 Gym</a></li>
-      <li><a href="{{ url_for('fight.attack_page') }}">⚔️ Attack</a></li>
-      <li class="nav-sep">ECONOMY</li>
-      <li><a href="{{ url_for('bank.bank_page') }}">🏦 Bank</a></li>
-      <li><a href="{{ url_for('shop.shop_page') }}">🛒 Shop</a></li>
-      <li><a href="{{ url_for('inventory.inventory_page') }}">🎒 Inventory</a></li>
-      <li><a href="{{ url_for('market.market_page') }}">🖤 Black Market</a></li>
-      <li><a href="{{ url_for('crypto.crypto_page') }}">📈 Crypto</a></li>
-      <li><a href="{{ url_for('business.business_page') }}">🏢 Businesses</a></li>
-      <li class="nav-sep">GANG</li>
-      <li><a href="{{ url_for('gang.gangs_page') }}">👥 Gangs</a></li>
-      <li><a href="{{ url_for('gang.territory_page') }}">🗺️ Territory</a></li>
-      <li class="nav-sep">MORE</li>
-      <li><a href="{{ url_for('casino.casino_page') }}">🎰 Casino</a></li>
-      <li><a href="{{ url_for('lottery.lottery_page') }}">🎟️ Lottery</a></li>
-      <li><a href="{{ url_for('daily.daily_page') }}">🎁 Daily Reward</a></li>
-      <li><a href="{{ url_for('missions.missions_page') }}">📋 Missions</a></li>
-      <li><a href="{{ url_for('social.mail_page') }}">✉️ Mail</a></li>
-      <li><a href="{{ url_for('social.chat_page') }}">💬 Chat</a></li>
-      <li class="nav-sep">RANKINGS</li>
-      <li><a href="{{ url_for('rank.leaderboard_page') }}">🏆 Leaderboard</a></li>
-      <li><a href="{{ url_for('rank.achievements_page') }}">🎖️ Achievements</a></li>
-      <li><a href="{{ url_for('rank.hitlist_page') }}">☠️ Hitlist</a></li>
+      <li><a href="{{ url_for('home.dashboard') }}">🏠 {{ t('Dashboard') }}</a></li>
+      <li><a href="{{ url_for('home.profile', uid=player.user_id) }}">👤 {{ t('Profile') }}</a></li>
+      <li class="nav-sep">{{ t('HUSTLE') }}</li>
+      <li><a href="{{ url_for('crimes.crimes_page') }}">💰 {{ t('Crimes') }}</a></li>
+      <li><a href="{{ url_for('gym.gym_page') }}">💪 {{ t('Gym') }}</a></li>
+      <li><a href="{{ url_for('fight.attack_page') }}">⚔️ {{ t('Attack') }}</a></li>
+      <li class="nav-sep">{{ t('ECONOMY') }}</li>
+      <li><a href="{{ url_for('bank.bank_page') }}">🏦 {{ t('Bank') }}</a></li>
+      <li><a href="{{ url_for('shop.shop_page') }}">🛒 {{ t('Shop') }}</a></li>
+      <li><a href="{{ url_for('inventory.inventory_page') }}">🎒 {{ t('Inventory') }}</a></li>
+      <li><a href="{{ url_for('market.market_page') }}">🖤 {{ t('Black Market') }}</a></li>
+      <li><a href="{{ url_for('crypto.crypto_page') }}">📈 {{ t('Crypto') }}</a></li>
+      <li><a href="{{ url_for('business.business_page') }}">🏢 {{ t('Businesses') }}</a></li>
+      <li class="nav-sep">{{ t('GANG') }}</li>
+      <li><a href="{{ url_for('gang.gangs_page') }}">👥 {{ t('Gangs') }}</a></li>
+      <li><a href="{{ url_for('gang.territory_page') }}">🗺️ {{ t('Territory') }}</a></li>
+      <li class="nav-sep">{{ t('MORE') }}</li>
+      <li><a href="{{ url_for('casino.casino_page') }}">🎰 {{ t('Casino') }}</a></li>
+      <li><a href="{{ url_for('lottery.lottery_page') }}">🎟️ {{ t('Lottery') }}</a></li>
+      <li><a href="{{ url_for('daily.daily_page') }}">🎁 {{ t('Daily Reward') }}</a></li>
+      <li><a href="{{ url_for('missions.missions_page') }}">📋 {{ t('Missions') }}</a></li>
+      <li><a href="{{ url_for('social.mail_page') }}">✉️ {{ t('Mail') }}</a></li>
+      <li><a href="{{ url_for('social.chat_page') }}">💬 {{ t('Chat') }}</a></li>
+      <li class="nav-sep">{{ t('RANKINGS') }}</li>
+      <li><a href="{{ url_for('rank.leaderboard_page') }}">🏆 {{ t('Leaderboard') }}</a></li>
+      <li><a href="{{ url_for('rank.achievements_page') }}">🎖️ {{ t('Achievements') }}</a></li>
+      <li><a href="{{ url_for('rank.hitlist_page') }}">☠️ {{ t('Hitlist') }}</a></li>
     </ul>
+    <div class="lang-switch">
+      <a href="{{ url_for('set_lang', code='en') }}" class="{{ 'active' if lang == 'en' }}">EN</a> |
+      <a href="{{ url_for('set_lang', code='bg') }}" class="{{ 'active' if lang == 'bg' }}">БГ</a>
+    </div>
     <form method="post" action="{{ url_for('auth.logout') }}" style="padding:10px">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" class="btn-logout">🚪 Logout</button>
+      <button type="submit" class="btn-logout">🚪 {{ t('Logout') }}</button>
     </form>
   </nav>
 
   <div id="main-wrap">
     <div id="statbar">
       <div class="sb-group">
-        <div class="sb-label">⚡ ENERGY</div>
+        <div class="sb-label">⚡ {{ t('ENERGY') }}</div>
         <div class="bar-track"><div class="bar-fill energy" style="width:{{ [(player.energy / player.energy_max * 100)|int, 100]|min }}%"></div></div>
         <div class="sb-val">{{ player.energy }}/{{ player.energy_max }}</div>
       </div>
       <div class="sb-group">
-        <div class="sb-label">❤️ HEALTH</div>
+        <div class="sb-label">❤️ {{ t('HEALTH') }}</div>
         <div class="bar-track"><div class="bar-fill health" style="width:{{ [(player.health / player.health_max * 100)|int, 100]|min }}%"></div></div>
         <div class="sb-val">{{ player.health }}/{{ player.health_max }}</div>
       </div>
       <div class="sb-group">
-        <div class="sb-label">🔥 NERVE</div>
+        <div class="sb-label">🔥 {{ t('NERVE') }}</div>
         <div class="bar-track"><div class="bar-fill nerve" style="width:{{ [(player.nerve / player.nerve_max * 100)|int, 100]|min }}%"></div></div>
         <div class="sb-val">{{ player.nerve }}/{{ player.nerve_max }}</div>
       </div>
@@ -75,18 +79,18 @@
         {% if player.gold > 0 %}<span>✨ {{ player.gold }}G</span>{% endif %}
       </div>
       <div class="sb-rank">
-        <span>Lv {{ player.level }}</span>
+        <span>{{ t('Lv') }} {{ player.level }}</span>
         <span>⭐ {{ player.respect }}</span>
       </div>
       <div class="sb-status">
         {% if is_in_jail %}
-          <a href="{{ url_for('jail.jail_page') }}" class="tag tag-jail">🔒 IN JAIL
+          <a href="{{ url_for('jail.jail_page') }}" class="tag tag-jail">🔒 {{ t('IN JAIL') }}
             <span class="countdown" data-until="{{ player.jail_until }}"></span></a>
         {% elif is_in_hospital %}
-          <a href="{{ url_for('hospital.hospital_page') }}" class="tag tag-hosp">🏥 HOSPITAL
+          <a href="{{ url_for('hospital.hospital_page') }}" class="tag tag-hosp">🏥 {{ t('HOSPITAL') }}
             <span class="countdown" data-until="{{ player.hospital_until }}"></span></a>
         {% else %}
-          <span class="tag tag-free">✅ FREE</span>
+          <span class="tag tag-free">✅ {{ t('FREE') }}</span>
         {% endif %}
       </div>
       <div id="notif-badge" style="display:none">🔔 <span id="notif-count">0</span></div>
@@ -100,6 +104,10 @@
 {# ── Auth layout: open ──────────────────────────────────────────────── #}
 {% else %}
 <div id="auth-wrap">
+  <div class="lang-switch lang-switch-auth">
+    <a href="{{ url_for('set_lang', code='en') }}" class="{{ 'active' if lang == 'en' }}">EN</a> |
+    <a href="{{ url_for('set_lang', code='bg') }}" class="{{ 'active' if lang == 'bg' }}">БГ</a>
+  </div>
   {% with msgs = get_flashed_messages(with_categories=true) %}
     {% if msgs %}<div id="flashes" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);min-width:340px;z-index:999">{% for cat, msg in msgs %}<div class="flash flash-{{ cat }}">{{ msg }}</div>{% endfor %}</div>{% endif %}
   {% endwith %}

@@ -2,20 +2,20 @@
 {% block title %}Register – Syndicate Streets{% endblock %}
 {% block content %}
 <div class="auth-card">
-  <h1>⚔️ Join the Streets</h1>
-  <p class="tagline">Start as an ex-con with $1,000 in the bank.</p>
+  <h1>⚔️ {{ t('Join the Streets') }}</h1>
+  <p class="tagline">{{ t('Start as an ex-con with $1,000 in the bank.') }}</p>
   <form method="post" action="{{ url_for('auth.register') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Username <small>(3–20 chars)</small></label>
+    <label>{{ t('Username') }} <small>{{ t('(3–20 chars)') }}</small></label>
     <input type="text" name="username" required minlength="3" maxlength="20" autofocus>
-    <label>Email <small>(optional)</small></label>
+    <label>{{ t('Email') }} <small>{{ t('(optional)') }}</small></label>
     <input type="email" name="email">
-    <label>Password <small>(min 6 chars)</small></label>
+    <label>{{ t('Password') }} <small>{{ t('(min 6 chars)') }}</small></label>
     <input type="password" name="password" required minlength="6" autocomplete="new-password">
-    <label>Confirm Password</label>
+    <label>{{ t('Confirm Password') }}</label>
     <input type="password" name="confirm" required autocomplete="new-password">
-    <button type="submit" class="btn btn-primary">Start Your Hustle</button>
+    <button type="submit" class="btn btn-primary">{{ t('Start Your Hustle') }}</button>
   </form>
-  <p class="auth-link">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+  <p class="auth-link">{{ t('Already have an account?') }} <a href="{{ url_for('auth.login') }}">{{ t('Login') }}</a></p>
 </div>
 {% endblock %}

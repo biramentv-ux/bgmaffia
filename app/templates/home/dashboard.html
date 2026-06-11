@@ -1,77 +1,77 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard – Syndicate Streets{% endblock %}
 {% block content %}
-<h2>Welcome back, {{ username }}!</h2>
+<h2>{{ t('Welcome back,') }} {{ username }}!</h2>
 
 <div class="dash-grid">
   <!-- Character card -->
   <div class="card">
-    <h3>📊 Character</h3>
-    <div class="stat-row"><span>Level</span><strong>{{ player.level }}</strong></div>
+    <h3>📊 {{ t('Character') }}</h3>
+    <div class="stat-row"><span>{{ t('Level') }}</span><strong>{{ player.level }}</strong></div>
     <div class="stat-row"><span>XP</span>
       <div style="flex:1;margin:0 8px">
         <div class="xp-wrap"><div class="xp-bar" style="width:{{ [(player.xp / xp_needed * 100)|int, 100]|min }}%"></div></div>
       </div>
       <strong>{{ player.xp }}/{{ xp_needed }}</strong>
     </div>
-    <div class="stat-row"><span>Respect</span><strong>{{ player.respect }}</strong></div>
-    <div class="stat-row"><span>Skill Points</span><strong>{{ player.skill_points }}</strong></div>
+    <div class="stat-row"><span>{{ t('Respect') }}</span><strong>{{ player.respect }}</strong></div>
+    <div class="stat-row"><span>{{ t('Skill Points') }}</span><strong>{{ player.skill_points }}</strong></div>
     <hr>
-    <div class="stat-row"><span>⚔️ Strength</span><strong>{{ player.strength }}</strong></div>
-    <div class="stat-row"><span>🛡️ Stamina</span><strong>{{ player.stamina }}</strong></div>
-    <div class="stat-row"><span>🧠 Intellect</span><strong>{{ player.intellect }}</strong></div>
-    <div class="stat-row"><span>😎 Sex Appeal</span><strong>{{ player.sexappeal }}</strong></div>
+    <div class="stat-row"><span>⚔️ {{ t('Strength') }}</span><strong>{{ player.strength }}</strong></div>
+    <div class="stat-row"><span>🛡️ {{ t('Stamina') }}</span><strong>{{ player.stamina }}</strong></div>
+    <div class="stat-row"><span>🧠 {{ t('Intellect') }}</span><strong>{{ player.intellect }}</strong></div>
+    <div class="stat-row"><span>😎 {{ t('Sex Appeal') }}</span><strong>{{ player.sexappeal }}</strong></div>
   </div>
 
   <!-- Money card -->
   <div class="card">
-    <h3>💰 Finances</h3>
-    <div class="stat-row"><span>Cash on hand</span><strong>${{ "{:,}".format(player.cash) }}</strong></div>
-    <div class="stat-row"><span>Bank balance</span><strong>${{ "{:,}".format(player.bank) }}</strong></div>
+    <h3>💰 {{ t('Finances') }}</h3>
+    <div class="stat-row"><span>{{ t('Cash on hand') }}</span><strong>${{ "{:,}".format(player.cash) }}</strong></div>
+    <div class="stat-row"><span>{{ t('Bank balance') }}</span><strong>${{ "{:,}".format(player.bank) }}</strong></div>
     {% if player.gold > 0 %}
-    <div class="stat-row"><span>Gold</span><strong>{{ player.gold }} ✨</strong></div>
+    <div class="stat-row"><span>{{ t('Gold') }}</span><strong>{{ player.gold }} ✨</strong></div>
     {% endif %}
     <div class="quick-actions">
-      <a href="{{ url_for('bank.bank_page') }}" class="btn btn-sm">🏦 Bank</a>
-      <a href="{{ url_for('crimes.crimes_page') }}" class="btn btn-sm">💰 Crimes</a>
+      <a href="{{ url_for('bank.bank_page') }}" class="btn btn-sm">🏦 {{ t('Bank') }}</a>
+      <a href="{{ url_for('crimes.crimes_page') }}" class="btn btn-sm">💰 {{ t('Crimes') }}</a>
     </div>
   </div>
 
   <!-- Gang card -->
   <div class="card">
-    <h3>👥 Gang</h3>
+    <h3>👥 {{ t('Gang') }}</h3>
     {% if gang %}
       <p><strong>[{{ gang.tag }}] {{ gang.name }}</strong></p>
-      <div class="stat-row"><span>Gang Bank</span><strong>${{ "{:,}".format(gang.bank) }}</strong></div>
-      <a href="{{ url_for('gang.gang_detail', gang_id=gang.id) }}" class="btn btn-sm">View Gang</a>
+      <div class="stat-row"><span>{{ t('Gang Bank') }}</span><strong>${{ "{:,}".format(gang.bank) }}</strong></div>
+      <a href="{{ url_for('gang.gang_detail', gang_id=gang.id) }}" class="btn btn-sm">{{ t('View Gang') }}</a>
     {% else %}
-      <p class="muted">You're not in a gang.</p>
-      <a href="{{ url_for('gang.gangs_page') }}" class="btn btn-sm">Browse Gangs</a>
+      <p class="muted">{{ t("You're not in a gang.") }}</p>
+      <a href="{{ url_for('gang.gangs_page') }}" class="btn btn-sm">{{ t('Browse Gangs') }}</a>
       {% if player.respect >= 50 %}
-      <a href="{{ url_for('gang.create_gang') }}" class="btn btn-sm btn-gold">Create Gang</a>
+      <a href="{{ url_for('gang.create_gang') }}" class="btn btn-sm btn-gold">{{ t('Create Gang') }}</a>
       {% else %}
-      <p class="muted small">Need 50 respect to create a gang ({{ player.respect }}/50)</p>
+      <p class="muted small">{{ t('Need 50 respect to create a gang') }} ({{ player.respect }}/50)</p>
       {% endif %}
     {% endif %}
   </div>
 
   <!-- Status card -->
   <div class="card">
-    <h3>📡 Status</h3>
+    <h3>📡 {{ t('Status') }}</h3>
     {% if is_in_jail %}
       <div class="status-block jail">
-        <p>🔒 IN JAIL</p>
-        <p>Release: <span class="countdown" data-until="{{ player.jail_until }}"></span></p>
-        <a href="{{ url_for('jail.jail_page') }}" class="btn btn-sm">Go to Jail</a>
+        <p>🔒 {{ t('IN JAIL') }}</p>
+        <p>{{ t('Release:') }} <span class="countdown" data-until="{{ player.jail_until }}"></span></p>
+        <a href="{{ url_for('jail.jail_page') }}" class="btn btn-sm">{{ t('Go to Jail') }}</a>
       </div>
     {% elif is_in_hospital %}
       <div class="status-block hosp">
-        <p>🏥 IN HOSPITAL</p>
-        <p>Release: <span class="countdown" data-until="{{ player.hospital_until }}"></span></p>
-        <a href="{{ url_for('hospital.hospital_page') }}" class="btn btn-sm">Go to Hospital</a>
+        <p>🏥 {{ t('HOSPITAL') }}</p>
+        <p>{{ t('Release:') }} <span class="countdown" data-until="{{ player.hospital_until }}"></span></p>
+        <a href="{{ url_for('hospital.hospital_page') }}" class="btn btn-sm">{{ t('Go to Hospital') }}</a>
       </div>
     {% else %}
-      <div class="status-block free"><p>✅ FREE</p></div>
+      <div class="status-block free"><p>✅ {{ t('FREE') }}</p></div>
     {% endif %}
     {% if notif_count > 0 %}
       <a href="{{ url_for('social.notifications_page') }}" class="notif-link">🔔 {{ notif_count }} new notification{{ 's' if notif_count != 1 }}</a>
@@ -85,10 +85,10 @@
 <div class="dash-grid two-col">
   <!-- Recent crimes -->
   <div class="card">
-    <h3>🕒 Recent Crimes</h3>
+    <h3>🕒 {{ t('Recent Crimes') }}</h3>
     {% if recent_crimes %}
     <table class="tbl">
-      <thead><tr><th>Crime</th><th>Result</th><th>Payout</th><th>Time</th></tr></thead>
+      <thead><tr><th>{{ t('Crime') }}</th><th>{{ t('Result') }}</th><th>{{ t('Payout') }}</th><th>{{ t('Time') }}</th></tr></thead>
       <tbody>
       {% for c in recent_crimes %}
         <tr class="{{ 'row-success' if c.success else 'row-fail' }}">
@@ -101,16 +101,16 @@
       </tbody>
     </table>
     {% else %}
-      <p class="muted">No crimes yet. <a href="{{ url_for('crimes.crimes_page') }}">Start now.</a></p>
+      <p class="muted">{{ t('No crimes yet.') }} <a href="{{ url_for('crimes.crimes_page') }}">{{ t('Start now.') }}</a></p>
     {% endif %}
   </div>
 
   <!-- Recent fights -->
   <div class="card">
-    <h3>⚔️ Recent Fights</h3>
+    <h3>⚔️ {{ t('Recent Fights') }}</h3>
     {% if recent_fights %}
     <table class="tbl">
-      <thead><tr><th>vs</th><th>Result</th><th>Stolen</th><th>Time</th></tr></thead>
+      <thead><tr><th>vs</th><th>{{ t('Result') }}</th><th>{{ t('Stolen') }}</th><th>{{ t('Time') }}</th></tr></thead>
       <tbody>
       {% for f in recent_fights %}
         {% set won = f.winner_id == player.user_id %}
@@ -124,7 +124,7 @@
       </tbody>
     </table>
     {% else %}
-      <p class="muted">No fights yet. <a href="{{ url_for('fight.attack_page') }}">Attack someone.</a></p>
+      <p class="muted">{{ t('No fights yet.') }} <a href="{{ url_for('fight.attack_page') }}">{{ t('Attack someone.') }}</a></p>
     {% endif %}
   </div>
 </div>

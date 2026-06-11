@@ -1,27 +1,27 @@
 {% extends 'base.html' %}
 {% block title %}Hospital{% endblock %}
 {% block content %}
-<h2>🏥 City Hospital</h2>
+<h2>🏥 {{ t('City Hospital') }}</h2>
 {% if in_hospital %}
 <div class="card lockout-card">
   <p class="lockout-icon">🏥</p>
-  <h3>You are recovering in hospital</h3>
-  <p>Release in: <strong><span class="countdown" data-until="{{ hosp_until }}"></span></strong></p>
-  <p class="muted">Approx. {{ minutes_left }} minute{{ 's' if minutes_left != 1 }} remaining</p>
-  <p>Health regenerates automatically while you wait.</p>
+  <h3>{{ t('You are recovering in hospital') }}</h3>
+  <p>{{ t('Release in:') }} <strong><span class="countdown" data-until="{{ hosp_until }}"></span></strong></p>
+  <p class="muted">{{ t('Approx.') }} {{ minutes_left }} {{ t('min remaining') }}</p>
+  <p>{{ t('Health regenerates automatically while you wait.') }}</p>
   {% if heal_cost > 0 %}
   <form method="post" action="{{ url_for('hospital.heal') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn btn-primary {{ 'btn-disabled' if player.cash < heal_cost }}" {{ 'disabled' if player.cash < heal_cost }}>
-      💊 Leave now for ${{ "{:,}".format(heal_cost) }}
+      💊 {{ t('Leave now for') }} ${{ "{:,}".format(heal_cost) }}
     </button>
   </form>
-  <p class="muted small">(You have ${{ "{:,}".format(player.cash) }} on hand)</p>
+  <p class="muted small">{{ t('(You have') }} ${{ "{:,}".format(player.cash) }} {{ t('on hand)') }}</p>
   {% endif %}
 </div>
 {% else %}
 <div class="card">
-  <p>You are not in the hospital. <a href="{{ url_for('home.dashboard') }}">Return to dashboard.</a></p>
+  <p>{{ t('You are not in the hospital.') }} <a href="{{ url_for('home.dashboard') }}">{{ t('Return to dashboard.') }}</a></p>
 </div>
 {% endif %}
 {% endblock %}

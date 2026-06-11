@@ -1,31 +1,31 @@
 {% extends 'base.html' %}
 {% block title %}Lottery{% endblock %}
 {% block content %}
-<h2>🎟️ Street Lottery</h2>
-<p class="muted">A draw every hour. Winner takes {{ ((1 - house_cut) * 100)|int }}% of the pot — the house keeps the rest. More tickets, better odds.</p>
+<h2>🎟️ {{ t('Street Lottery') }}</h2>
+<p class="muted">{{ t('A draw every hour. Winner takes') }} {{ ((1 - house_cut) * 100)|int }}% {{ t('of the pot — the house keeps the rest. More tickets, better odds.') }}</p>
 
 <div class="dash-grid">
   <div class="card lotto-card">
-    <h3>💰 Current Pot</h3>
+    <h3>💰 {{ t('Current Pot') }}</h3>
     <div class="pot-num">${{ "{:,}".format(draw.pot) }}</div>
-    <div class="stat-row"><span>Next draw</span>
+    <div class="stat-row"><span>{{ t('Next draw') }}</span>
       <strong><span class="countdown" data-until="{{ next_draw_at }}"></span></strong></div>
-    <div class="stat-row"><span>Your tickets</span><strong>{{ my_tickets }} / {{ total_tickets }}</strong></div>
+    <div class="stat-row"><span>{{ t('Your tickets') }}</span><strong>{{ my_tickets }} / {{ total_tickets }}</strong></div>
     {% if total_tickets > 0 and my_tickets > 0 %}
-    <div class="stat-row"><span>Win chance</span><strong>{{ "%.1f"|format(my_tickets / total_tickets * 100) }}%</strong></div>
+    <div class="stat-row"><span>{{ t('Win chance') }}</span><strong>{{ "%.1f"|format(my_tickets / total_tickets * 100) }}%</strong></div>
     {% endif %}
     <form method="post" action="{{ url_for('lottery.buy_tickets') }}" class="lotto-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="number" name="qty" min="1" max="100" value="1" required>
-      <button type="submit" class="btn btn-gold">Buy @ ${{ "{:,}".format(ticket_price) }} each</button>
+      <button type="submit" class="btn btn-gold">{{ t('Buy') }} @ ${{ "{:,}".format(ticket_price) }} {{ t('each') }}</button>
     </form>
   </div>
 
   <div class="card">
-    <h3>🏆 Recent Winners</h3>
+    <h3>🏆 {{ t('Recent Winners') }}</h3>
     {% if recent %}
     <table class="tbl">
-      <thead><tr><th>Winner</th><th>Prize</th><th>When</th></tr></thead>
+      <thead><tr><th>{{ t('Winner') }}</th><th>{{ t('Prize') }}</th><th>{{ t('When') }}</th></tr></thead>
       <tbody>
       {% for d in recent %}
         <tr>
@@ -37,7 +37,7 @@
       </tbody>
     </table>
     {% else %}
-      <p class="muted">No draws completed yet. Be the first winner!</p>
+      <p class="muted">{{ t('No draws completed yet. Be the first winner!') }}</p>
     {% endif %}
   </div>
 </div>

@@ -26,6 +26,7 @@ def create_app(config=None):
     @app.context_processor
     def inject_globals():
         from .game import is_in_jail, is_in_hospital
+        from .i18n import translate, DEFAULT_LANG
         player = g.get('player')
         username = None
         if player:
@@ -33,6 +34,7 @@ def create_app(config=None):
             u = db.execute("SELECT username FROM users WHERE id=?", (player['user_id'],)).fetchone()
             if u:
                 username = u['username']
+        lang = session.get('lang', DEFAULT_LANG)
         return {
             'player': player,
             'username': username,
@@ -40,12 +42,14 @@ def create_app(config=None):
             'is_in_jail': is_in_jail(player) if player else False,
             'is_in_hospital': is_in_hospital(player) if player else False,
             'enumerate': enumerate,
+            'lang': lang,
+            't': lambda s: translate(lang, s),
         }
 
     # ── Before every request ────────────────────────────────────────────
     OPEN_ENDPOINTS = {
         'auth.login', 'auth.register', 'auth.logout',
-        'static', None,
+        'set_lang', 'static', None,
     }
     LOCK_BYPASS = {
         'jail.jail_page', 'jail.bail', 'jail.bust',
@@ -113,6 +117,14 @@ def create_app(config=None):
     @app.route('/sw.js')
     def service_worker():
         return app.send_static_file('sw.js')
+
+    # ── Language switch ──────────────────────────────────────────────────
+    @app.route('/lang/<code>')
+    def set_lang(code):
+        from .i18n import LANGS
+        if code in LANGS:
+            session['lang'] = code
+        return redirect(request.referrer or url_for('home.dashboard'))
 
     # ── Start scheduler ──────────────────────────────────────────────────
     from .scheduler import start_scheduler
