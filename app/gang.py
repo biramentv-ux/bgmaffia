@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, g, reque
 from .i18n import tf
 from .auth import login_required
 from .db import get_db
-from .game import _notify, check_achievements
+from .game import _notify, check_achievements, mission_progress
 
 bp = Blueprint('gang', __name__)
 
@@ -52,6 +52,7 @@ def create_gang():
         db.execute("INSERT INTO gang_members(gang_id,user_id,rank) VALUES(?,?,4)", (gang_id, uid))
         db.execute("UPDATE players SET gang_id=?, gang_rank=4 WHERE user_id=?", (gang_id, uid))
         db.commit()
+        mission_progress(db, uid, 'gang')
         check_achievements(db, uid)
         flash(f"🏴 Gang '{name}' [{tag}] created!", 'success')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))

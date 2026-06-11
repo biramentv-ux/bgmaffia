@@ -42,11 +42,11 @@ def dice():
         winnings = bet * 5
         db.execute("UPDATE players SET cash=cash+? WHERE user_id=? AND cash>=?", (winnings, uid, 0))
         flash(f"🎲 Rolled {roll}! You win ${winnings:,}!", 'success')
-        mission_progress(db, uid, 'casino')
     else:
         db.execute("UPDATE players SET cash=cash-? WHERE user_id=? AND cash>=?", (bet, uid, bet))
         flash(f"🎲 Rolled {roll} (you guessed {guess}). Lost ${bet:,}.", 'error')
     db.commit()
+    mission_progress(db, uid, 'casino')
     return redirect(url_for('casino.casino_page'))
 
 
@@ -90,10 +90,10 @@ def slots():
         winnings = bet * multiplier
         db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (winnings, uid))
         flash(f"🎰 {' '.join(reels)} — JACKPOT! +${winnings:,}!", 'success')
-        mission_progress(db, uid, 'casino')
     else:
         flash(f"🎰 {' '.join(reels)} — No match. Lost ${bet:,}.", 'error')
     db.commit()
+    mission_progress(db, uid, 'casino')
     return redirect(url_for('casino.casino_page'))
 
 

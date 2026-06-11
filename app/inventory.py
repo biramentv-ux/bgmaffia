@@ -63,21 +63,34 @@ def equip(inv_id):
 def use_item(inv_id):
     db = get_db()
     uid = g.player['user_id']
+
+    db.execute("BEGIN IMMEDIATE")
+    # Read item inside the lock so a concurrent request can't consume the same item twice.
     row = db.execute(
         "SELECT inv.id, inv.qty, i.name, i.type, i.effect_json FROM inventory inv JOIN items i ON inv.item_id=i.id WHERE inv.id=? AND inv.user_id=?",
         (inv_id, uid)
     ).fetchone()
     if not row:
+        db.execute("ROLLBACK")
         flash(tf("Item not found."), 'error')
         return redirect(url_for('inventory.inventory_page'))
     if row['type'] != 'consumable':
+        db.execute("ROLLBACK")
         flash("That item can't be used directly.", 'error')
         return redirect(url_for('inventory.inventory_page'))
 
-    effects = json.loads(row['effect_json'] or '{}')
-    db.execute("BEGIN IMMEDIATE")
-    player = dict(db.execute("SELECT * FROM players WHERE user_id=?", (uid,)).fetchone())
+    # Remove one from inventory first; if no row was changed someone else already consumed it.
+    if row['qty'] > 1:
+        db.execute("UPDATE inventory SET qty=qty-1 WHERE id=? AND qty>1", (inv_id,))
+    else:
+        cur = db.execute("DELETE FROM inventory WHERE id=? AND qty=1", (inv_id,))
+        if cur.rowcount == 0:
+            db.execute("ROLLBACK")
+            flash(tf("Item not found."), 'error')
+            return redirect(url_for('inventory.inventory_page'))
 
+    effects = json.loads(row['effect_json'] or '{}')
+    player = dict(db.execute("SELECT * FROM players WHERE user_id=?", (uid,)).fetchone())
     updates = {}
     msgs = []
     energy_gain = effects.get('energy', 0)
@@ -92,12 +105,6 @@ def use_item(inv_id):
     if updates:
         cols = ', '.join(f"{k}=?" for k in updates)
         db.execute(f"UPDATE players SET {cols} WHERE user_id=?", list(updates.values()) + [uid])
-
-    # Remove one from inventory
-    if row['qty'] > 1:
-        db.execute("UPDATE inventory SET qty=qty-1 WHERE id=?", (inv_id,))
-    else:
-        db.execute("DELETE FROM inventory WHERE id=?", (inv_id,))
     db.commit()
 
     flash(f"✅ Used {row['name']}: {', '.join(msgs) or 'no effect'}.", 'success')

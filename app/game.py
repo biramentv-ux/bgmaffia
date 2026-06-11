@@ -66,19 +66,29 @@ def lazy_regen(db, user_id):
 
 
 # ── Lock helpers ────────────────────────────────────────────────────────
+def _now_sql():
+    """UTC now as SQLite datetime string (space-separated, matching datetime('now', ...))."""
+    return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _norm_ts(ts):
+    """Normalize a timestamp string to SQLite format regardless of source (T vs space)."""
+    return ts.replace('T', ' ') if ts else ts
+
+
 def is_in_jail(player):
-    j = player.get('jail_until')
-    return bool(j and j > _now().isoformat())
+    j = _norm_ts(player.get('jail_until'))
+    return bool(j and j > _now_sql())
 
 
 def is_in_hospital(player):
-    h = player.get('hospital_until')
-    return bool(h and h > _now().isoformat())
+    h = _norm_ts(player.get('hospital_until'))
+    return bool(h and h > _now_sql())
 
 
 def is_protected(player):
-    prot = player.get('protection_until')
-    return bool(prot and prot > _now().isoformat())
+    prot = _norm_ts(player.get('protection_until'))
+    return bool(prot and prot > _now_sql())
 
 
 def is_online(user_row, timeout_minutes=5):
@@ -116,10 +126,11 @@ def maybe_level_up(db, user_id, player):
             (level, sp, user_id)
         )
         _notify(db, user_id, f"🎉 You reached level {level}! +{sp} skill points.")
-        mission_progress(db, user_id, 'level', 1)
         levelled = True
     if levelled:
         db.commit()
+        # Level missions use absolute targets {"level": N}; set progress to actual level.
+        mission_progress(db, user_id, 'level', level, absolute=True)
     return level
 
 
@@ -216,9 +227,10 @@ def resolve_fight(db, attacker_id, defender_id):
                    (cash_stolen, f'+{hosp_mins} minutes', now, defender_id))
         db.execute("UPDATE players SET respect=respect+?, total_fights_won=total_fights_won+1 WHERE user_id=?",
                    (respect_gain, attacker_id))
-        # Pay out any active bounties on the defender
+        # Pay out active, non-expired bounties on the defender
         bounties = db.execute(
-            "SELECT id, amount FROM bounties WHERE target_id=? AND status='active'", (defender_id,)
+            "SELECT id, amount FROM bounties WHERE target_id=? AND status='active' "
+            "AND (expires_at IS NULL OR expires_at > datetime('now'))", (defender_id,)
         ).fetchall()
         for b in bounties:
             prize = int(b['amount'] * 0.90)
@@ -277,6 +289,16 @@ def _check_achievements(db, user_id):
     earned = {r['achievement_id'] for r in db.execute(
         "SELECT achievement_id FROM player_achievements WHERE user_id=?", (user_id,))}
 
+    territories_owned = db.execute(
+        "SELECT COUNT(*) FROM territories WHERE owner_user=?", (user_id,)
+    ).fetchone()[0]
+    casino_wins = db.execute(
+        "SELECT COALESCE(progress,0) FROM player_missions pm JOIN missions m ON pm.mission_id=m.id "
+        "WHERE pm.user_id=? AND m.req_json LIKE '%\"casino\"%' AND m.is_daily=0 LIMIT 1",
+        (user_id,)
+    ).fetchone()
+    casino_win_count = casino_wins[0] if casino_wins else 0
+
     checks = [
         (1, p['total_fights_won'] >= 1),
         (2, p['total_crimes'] >= 100),
@@ -286,6 +308,8 @@ def _check_achievements(db, user_id):
         (6, p['level'] >= 10),
         (7, p['level'] >= 25),
         (8, p['respect'] >= 1000),
+        (9, territories_owned >= 3),
+        (10, casino_win_count >= 10),
     ]
     for aid, cond in checks:
         if cond and aid not in earned:
@@ -301,8 +325,8 @@ def check_achievements(db, user_id):
 
 
 # ── Daily mission progress helper ───────────────────────────────────────
-def mission_progress(db, user_id, key, amount=1):
-    """Increment a mission progress counter for missions that track the given key."""
+def mission_progress(db, user_id, key, amount=1, absolute=False):
+    """Advance a mission progress counter. With absolute=True, sets progress to amount (for non-incremental targets like level)."""
     rows = db.execute(
         "SELECT m.id, m.req_json, pm.progress, pm.completed, pm.last_reset "
         "FROM missions m LEFT JOIN player_missions pm ON m.id=pm.mission_id AND pm.user_id=? "
@@ -328,7 +352,12 @@ def mission_progress(db, user_id, key, amount=1):
         if completed:
             continue
 
-        new_prog = min(prog + amount, target)
+        if absolute:
+            new_prog = min(amount, target)
+            if new_prog <= prog:
+                continue  # already at or past this value
+        else:
+            new_prog = min(prog + amount, target)
         new_completed = 1 if new_prog >= target else 0
 
         db.execute(
@@ -353,6 +382,9 @@ def _apply_mission_reward(db, user_id, reward):
         "UPDATE players SET cash=cash+?, xp=xp+?, gold=gold+?, respect=respect+? WHERE user_id=?",
         (cash, xp, gold, respect, user_id)
     )
+    if xp:
+        player = dict(db.execute("SELECT * FROM players WHERE user_id=?", (user_id,)).fetchone())
+        maybe_level_up(db, user_id, player)
 
 
 # ── Territory income ────────────────────────────────────────────────────
