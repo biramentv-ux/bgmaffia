@@ -214,13 +214,14 @@ CREATE TABLE IF NOT EXISTS player_achievements (
 );
 
 CREATE TABLE IF NOT EXISTS bounties (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    target_id  INTEGER NOT NULL,
-    placed_by  INTEGER NOT NULL,
-    amount     INTEGER NOT NULL,
-    status     TEXT DEFAULT 'active', -- active|collected|expired
-    placed_at  TEXT DEFAULT (datetime('now')),
-    expires_at TEXT
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_id    INTEGER NOT NULL,
+    placed_by    INTEGER NOT NULL,
+    amount       INTEGER NOT NULL,
+    status       TEXT DEFAULT 'active', -- active|collected|expired
+    placed_at    TEXT DEFAULT (datetime('now')),
+    expires_at   TEXT,
+    collected_by INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS missions (
@@ -323,3 +324,10 @@ CREATE INDEX IF NOT EXISTS idx_messages_to   ON messages(to_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_bounty_target ON bounties(target_id, status);
 CREATE INDEX IF NOT EXISTS idx_crypto_sym    ON crypto_prices(symbol, ts);
 CREATE INDEX IF NOT EXISTS idx_lotto_draw    ON lottery_tickets(draw_id);
+
+-- Server-side blackjack state (prevents client from reading dealer/deck from cookie)
+CREATE TABLE IF NOT EXISTS bj_sessions (
+    user_id     INTEGER PRIMARY KEY,
+    state_json  TEXT NOT NULL,
+    updated_at  TEXT DEFAULT (datetime('now'))
+);

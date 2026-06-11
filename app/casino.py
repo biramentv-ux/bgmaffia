@@ -99,16 +99,15 @@ def slots():
 
 # ── Blackjack (server-side card logic) ──────────────────────────────────
 def _card_value(card):
-    rank = card[0]
+    rank = card[:-1]  # strip the single suit character (♠♥♦♣)
     if rank in ('J', 'Q', 'K'): return 10
     if rank == 'A': return 11
-    try: return int(rank)
-    except: return 0
+    return int(rank)
 
 
 def _hand_value(hand):
     val = sum(_card_value(c) for c in hand)
-    aces = sum(1 for c in hand if c[0] == 'A')
+    aces = sum(1 for c in hand if c[:-1] == 'A')
     while val > 21 and aces:
         val -= 10; aces -= 1
     return val
@@ -148,8 +147,14 @@ def bj_start():
     player_hand = [deck.pop(), deck.pop()]
     dealer_hand = [deck.pop(), deck.pop()]
 
-    from flask import session
-    session['bj'] = {'bet': bet, 'deck': deck, 'player': player_hand, 'dealer': dealer_hand}
+    import json as _json
+    state = {'bet': bet, 'deck': deck, 'player': player_hand, 'dealer': dealer_hand}
+    db.execute(
+        "INSERT INTO bj_sessions(user_id, state_json, updated_at) VALUES(?,?,datetime('now')) "
+        "ON CONFLICT(user_id) DO UPDATE SET state_json=excluded.state_json, updated_at=excluded.updated_at",
+        (uid, _json.dumps(state))
+    )
+    db.commit()
 
     if _hand_value(player_hand) == 21:
         return _bj_resolve(uid, db, 'blackjack')
@@ -163,21 +168,25 @@ def bj_start():
 @bp.route('/casino/blackjack/hit', methods=['POST'])
 @login_required
 def bj_hit():
-    from flask import session
-    bj = session.get('bj')
-    if not bj:
-        flash(tf("No active blackjack game."), 'error')
-        return redirect(url_for('casino.casino_page'))
+    import json as _json
     db = get_db()
     uid = g.player['user_id']
+    row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
+    if not row:
+        flash(tf("No active blackjack game."), 'error')
+        return redirect(url_for('casino.casino_page'))
+    bj = _json.loads(row['state_json'])
     bj['player'].append(bj['deck'].pop())
     pv = _hand_value(bj['player'])
-    session['bj'] = bj
     if pv > 21:
-        session.pop('bj', None)
+        db.execute("DELETE FROM bj_sessions WHERE user_id=?", (uid,))
+        db.commit()
         flash(f"🃏 Bust! Hand: {' '.join(bj['player'])} ({pv}). Lost ${bj['bet']:,}.", 'error')
         mission_progress(db, uid, 'casino')
         return redirect(url_for('casino.casino_page'))
+    db.execute("UPDATE bj_sessions SET state_json=?, updated_at=datetime('now') WHERE user_id=?",
+               (_json.dumps(bj), uid))
+    db.commit()
     return render_template('casino/blackjack.html',
                            player_hand=bj['player'],
                            dealer_visible=[bj['dealer'][0], '??'],
@@ -187,21 +196,27 @@ def bj_hit():
 @bp.route('/casino/blackjack/stand', methods=['POST'])
 @login_required
 def bj_stand():
-    from flask import session
-    bj = session.get('bj')
-    if not bj:
-        flash(tf("No active blackjack game."), 'error')
-        return redirect(url_for('casino.casino_page'))
-    session.pop('bj', None)
+    import json as _json
     db = get_db()
     uid = g.player['user_id']
+    row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
+    if not row:
+        flash(tf("No active blackjack game."), 'error')
+        return redirect(url_for('casino.casino_page'))
+    bj = _json.loads(row['state_json'])
+    db.execute("DELETE FROM bj_sessions WHERE user_id=?", (uid,))
+    db.commit()
     return _bj_resolve(uid, db, 'stand', bj)
 
 
 def _bj_resolve(uid, db, reason, bj=None):
-    from flask import session
+    import json as _json
     if bj is None:
-        bj = session.pop('bj', None)
+        row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
+        if row:
+            bj = _json.loads(row['state_json'])
+            db.execute("DELETE FROM bj_sessions WHERE user_id=?", (uid,))
+            db.commit()
     if not bj:
         return redirect(url_for('casino.casino_page'))
     dealer_hand = bj['dealer']

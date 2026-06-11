@@ -88,11 +88,12 @@ def edit_crime():
 @bp.route('/reset_db', methods=['POST'])
 @admin_required
 def reset_db():
-    from .db import init_db
+    from .db import init_db, close_db
     import os
     from flask import current_app
     db_path = current_app.config['DATABASE']
-    get_db().close()
+    close_db()
+    g.pop('db', None)
     if os.path.exists(db_path):
         os.remove(db_path)
     init_db()

@@ -57,6 +57,18 @@ def list_item():
         db.execute("UPDATE inventory SET qty=qty-1 WHERE id=?", (inv_id,))
     else:
         db.execute("DELETE FROM inventory WHERE id=?", (inv_id,))
+        # Clear any equipped slot that referenced this item so the seller
+        # doesn't keep combat bonuses from an item they no longer own.
+        item_id = inv['item_id']
+        db.execute(
+            "UPDATE players SET "
+            "equipped_weapon = CASE WHEN equipped_weapon=? THEN NULL ELSE equipped_weapon END,"
+            "equipped_car    = CASE WHEN equipped_car=?    THEN NULL ELSE equipped_car    END,"
+            "equipped_dog    = CASE WHEN equipped_dog=?    THEN NULL ELSE equipped_dog    END,"
+            "equipped_armor  = CASE WHEN equipped_armor=?  THEN NULL ELSE equipped_armor  END "
+            "WHERE user_id=?",
+            (item_id, item_id, item_id, item_id, uid)
+        )
     db.execute(
         "INSERT INTO marketplace(seller_id,item_id,qty,price,expires_at) VALUES(?,?,?,?,?)",
         (uid, inv['item_id'], 1, price, expires)

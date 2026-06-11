@@ -28,6 +28,9 @@ def lazy_regen(db, user_id):
         cur = p[bar]
         cap = p[mx]
         if cur >= cap:
+            # Advance the timestamp to now so we don't accumulate phantom ticks
+            # while the bar was at cap, which would instantly refill on next spend.
+            updates[ts_col] = now.isoformat()
             return
         ts_str = p[ts_col]
         if not ts_str:
@@ -113,6 +116,7 @@ def maybe_level_up(db, user_id, player):
             (level, sp, user_id)
         )
         _notify(db, user_id, f"🎉 You reached level {level}! +{sp} skill points.")
+        mission_progress(db, user_id, 'level', 1)
         levelled = True
     if levelled:
         db.commit()
@@ -159,11 +163,10 @@ def resolve_fight(db, attacker_id, defender_id):
     def_row = db.execute("SELECT * FROM players WHERE user_id=?", (defender_id,)).fetchone()
     atk_p = dict(atk_row); def_p = dict(def_row)
 
-    atk_eff, _   = _effective_stats(atk_p, db)
-    _, def_eff   = _effective_stats(def_p, db)
-    # Attacker's defense helps their own survivability
-    atk_eff_def, _ = _effective_stats(atk_p, db)
-    _, def_eff_def = _effective_stats(def_p, db)
+    atk_eff_atk, atk_eff_def = _effective_stats(atk_p, db)
+    def_eff_atk, def_eff_def = _effective_stats(def_p, db)
+    atk_eff = atk_eff_atk
+    def_eff = def_eff_atk
 
     atk_hp = atk_p['health']
     def_hp = def_p['health']
@@ -213,6 +216,16 @@ def resolve_fight(db, attacker_id, defender_id):
                    (cash_stolen, f'+{hosp_mins} minutes', now, defender_id))
         db.execute("UPDATE players SET respect=respect+?, total_fights_won=total_fights_won+1 WHERE user_id=?",
                    (respect_gain, attacker_id))
+        # Pay out any active bounties on the defender
+        bounties = db.execute(
+            "SELECT id, amount FROM bounties WHERE target_id=? AND status='active'", (defender_id,)
+        ).fetchall()
+        for b in bounties:
+            prize = int(b['amount'] * 0.90)
+            db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (prize, attacker_id))
+            db.execute("UPDATE bounties SET status='collected', collected_by=? WHERE id=?",
+                       (attacker_id, b['id']))
+            _notify(db, attacker_id, f"💰 Bounty collected! +${prize:,}")
         db.commit()
         _notify(db, defender_id, f"😵 {_username(db,attacker_id)} beat you up and stole ${cash_stolen:,}!")
         _check_achievements(db, attacker_id)

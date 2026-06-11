@@ -134,7 +134,10 @@ def kick():
     if target_id == gang['leader_id']:
         flash("Can't kick the leader.", 'error')
         return redirect(url_for('gang.gang_detail', gang_id=gang_id))
-    db.execute("DELETE FROM gang_members WHERE gang_id=? AND user_id=?", (gang_id, target_id))
+    cur = db.execute("DELETE FROM gang_members WHERE gang_id=? AND user_id=?", (gang_id, target_id))
+    if cur.rowcount == 0:
+        flash(tf("Player is not a member of your gang."), 'error')
+        return redirect(url_for('gang.gang_detail', gang_id=gang_id))
     db.execute("UPDATE players SET gang_id=NULL, gang_rank=0 WHERE user_id=?", (target_id,))
     db.commit()
     flash(tf("Member kicked."), 'success')

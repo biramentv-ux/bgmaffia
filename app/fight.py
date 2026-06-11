@@ -76,7 +76,8 @@ def attack(target_id):
     db.execute("ROLLBACK")
 
     result = resolve_fight(db, uid, target_id)
-    mission_progress(db, uid, 'wins')
+    if result['winner_id'] == uid:
+        mission_progress(db, uid, 'wins')
     check_achievements(db, uid)
 
     flash(f"⚔️ {result['outcome']} ({result['turns']} turns)", 'success' if result['winner_id'] == uid else 'error')
