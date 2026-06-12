@@ -14,26 +14,29 @@ def create_app(config=None):
 
     csrf.init_app(app)
 
-    from .db import get_db, close_db, init_db
+    from .db import get_db, close_db, init_db, migrate_db
     app.teardown_appcontext(close_db)
 
-    # Initialise DB if it doesn't exist
+    # Initialise DB and apply forward migrations on every startup
     with app.app_context():
         if not os.path.exists(app.config['DATABASE']):
             init_db()
+        migrate_db()
 
     # ── Context processor ────────────────────────────────────────────────
     @app.context_processor
     def inject_globals():
-        from .game import is_in_jail, is_in_hospital
+        from .game import is_in_jail, is_in_hospital, get_vip_tier
         from .i18n import translate, DEFAULT_LANG
         player = g.get('player')
         username = None
+        vip_tier = 0
         if player:
             db = get_db()
             u = db.execute("SELECT username FROM users WHERE id=?", (player['user_id'],)).fetchone()
             if u:
                 username = u['username']
+            vip_tier = get_vip_tier(player)
         lang = session.get('lang', DEFAULT_LANG)
         return {
             'player': player,
@@ -44,6 +47,7 @@ def create_app(config=None):
             'enumerate': enumerate,
             'lang': lang,
             't': lambda s: translate(lang, s),
+            'vip_tier': vip_tier,
         }
 
     # ── Before every request ────────────────────────────────────────────
@@ -106,11 +110,12 @@ def create_app(config=None):
     from .crypto    import bp as crypto_bp
     from .business  import bp as business_bp
     from .lottery   import bp as lottery_bp
+    from .store     import bp as store_bp
 
     for bp in [auth_bp, home_bp, crimes_bp, gym_bp, fight_bp, hospital_bp,
                jail_bp, bank_bp, shop_bp, inventory_bp, market_bp, gang_bp,
                casino_bp, social_bp, missions_bp, rank_bp, admin_bp,
-               daily_bp, crypto_bp, business_bp, lottery_bp]:
+               daily_bp, crypto_bp, business_bp, lottery_bp, store_bp]:
         app.register_blueprint(bp)
 
     # Serve the service worker from the root so it can control the whole app

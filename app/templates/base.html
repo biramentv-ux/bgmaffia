@@ -35,6 +35,7 @@
       <li><a href="{{ url_for('gang.gangs_page') }}">👥 {{ t('Gangs') }}</a></li>
       <li><a href="{{ url_for('gang.territory_page') }}">🗺️ {{ t('Territory') }}</a></li>
       <li class="nav-sep">{{ t('MORE') }}</li>
+      <li><a href="{{ url_for('store.store_page') }}" style="color:#fbbf24">💎 {{ t('Premium Store') }}</a></li>
       <li><a href="{{ url_for('casino.casino_page') }}">🎰 {{ t('Casino') }}</a></li>
       <li><a href="{{ url_for('lottery.lottery_page') }}">🎟️ {{ t('Lottery') }}</a></li>
       <li><a href="{{ url_for('daily.daily_page') }}">🎁 {{ t('Daily Reward') }}</a></li>
@@ -76,7 +77,12 @@
       <div class="sb-money">
         <span>💵 ${{ "{:,}".format(player.cash) }}</span>
         <span>🏦 ${{ "{:,}".format(player.bank) }}</span>
-        {% if player.gold > 0 %}<span>✨ {{ player.gold }}G</span>{% endif %}
+        <a href="{{ url_for('store.store_page') }}" style="text-decoration:none">
+          <span style="color:#fbbf24">✨ {{ player.gold }}G</span>
+        </a>
+        {% if vip_tier == 1 %}<span title="VIP Bronze" style="color:#fcd34d">🥉VIP</span>
+        {% elif vip_tier == 2 %}<span title="VIP Silver" style="color:#67e8f9">🥈VIP</span>
+        {% elif vip_tier == 3 %}<span title="VIP Gold" style="color:#fbbf24">🥇VIP</span>{% endif %}
       </div>
       <div class="sb-rank">
         <span>{{ t('Lv') }} {{ player.level }}</span>

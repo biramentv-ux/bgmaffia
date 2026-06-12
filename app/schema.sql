@@ -74,7 +74,9 @@ CREATE TABLE IF NOT EXISTS players (
     total_crimes      INTEGER DEFAULT 0,
     total_fights_won  INTEGER DEFAULT 0,
     total_casino_wins INTEGER DEFAULT 0,
-    total_earned     INTEGER DEFAULT 0
+    total_earned     INTEGER DEFAULT 0,
+    vip_tier         INTEGER DEFAULT 0,
+    vip_until        TEXT
 );
 
 CREATE TABLE IF NOT EXISTS crimes (
@@ -332,3 +334,24 @@ CREATE TABLE IF NOT EXISTS bj_sessions (
     state_json  TEXT NOT NULL,
     updated_at  TEXT DEFAULT (datetime('now'))
 );
+
+-- Pay-to-win: gold transaction ledger
+CREATE TABLE IF NOT EXISTS gold_transactions (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    amount  INTEGER NOT NULL,  -- positive=earn, negative=spend
+    kind    TEXT NOT NULL,     -- purchase|boost|vip|admin
+    ref_id  INTEGER,
+    ts      TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_gold_txn ON gold_transactions(user_id, ts);
+
+-- Pay-to-win: active timed boosts per player
+CREATE TABLE IF NOT EXISTS player_boosts (
+    user_id    INTEGER NOT NULL,
+    boost_type TEXT NOT NULL,
+    multiplier REAL DEFAULT 1.0,
+    expires_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, boost_type)
+);
+CREATE INDEX IF NOT EXISTS idx_boosts_user ON player_boosts(user_id, expires_at);

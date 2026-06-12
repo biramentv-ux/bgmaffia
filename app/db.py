@@ -32,6 +32,42 @@ def init_db():
     db.commit()
 
 
+def migrate_db():
+    """Apply forward-only schema migrations. Safe to run on every startup."""
+    db = get_db()
+    # New tables (CREATE TABLE IF NOT EXISTS — idempotent)
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS gold_transactions (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            amount  INTEGER NOT NULL,
+            kind    TEXT NOT NULL,
+            ref_id  INTEGER,
+            ts      TEXT DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_gold_txn ON gold_transactions(user_id, ts);
+
+        CREATE TABLE IF NOT EXISTS player_boosts (
+            user_id    INTEGER NOT NULL,
+            boost_type TEXT NOT NULL,
+            multiplier REAL DEFAULT 1.0,
+            expires_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, boost_type)
+        );
+        CREATE INDEX IF NOT EXISTS idx_boosts_user ON player_boosts(user_id, expires_at);
+    """)
+    # New columns on existing tables (ignore "duplicate column" error)
+    for sql in [
+        "ALTER TABLE players ADD COLUMN vip_tier INTEGER DEFAULT 0",
+        "ALTER TABLE players ADD COLUMN vip_until TEXT",
+    ]:
+        try:
+            db.execute(sql)
+        except Exception:
+            pass
+    db.commit()
+
+
 def query(sql, params=()):
     return get_db().execute(sql, params).fetchall()
 

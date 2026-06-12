@@ -353,6 +353,27 @@ BG = {
     'When': 'Кога',
     'No draws completed yet. Be the first winner!': 'Още няма теглене. Бъди първият късметлия!',
 
+    # ── Premium Store ────────────────────────────────────────────────
+    'Premium Store': 'Премиум магазин',
+    'Demo mode': 'Демо режим',
+    'Purchases are simulated — no real payment is charged. In production this integrates with Stripe.':
+        'Покупките са симулирани — не се теглят реални пари. В продукция се интегрира със Stripe.',
+    'BUY GOLD': 'КУПИ ЗЛАТО',
+    'INSTANT BOOSTS': 'МОМЕНТНИ БУСТОВЕ',
+    'VIP MEMBERSHIP': 'VIP ЧЛЕНСТВО',
+    'Transaction History': 'История на транзакциите',
+    'expires': 'изтича',
+    'ACTIVE': 'АКТИВЕН',
+    'Not enough Gold': 'Нямаш достатъчно злато',
+    'min': 'мин',
+    'days': 'дни',
+    'Refresh': 'Поднови',
+    'Activate': 'Активирай',
+    'Extend': 'Удължи',
+    'Package not found.': 'Пакетът не е намерен.',
+    'Unknown boost.': 'Непознат буст.',
+    'VIP tier not found.': 'VIP нивото не е намерено.',
+
     # ── Flash messages (server-side) ─────────────────────────────────
     # auth
     'Invalid username or password.': 'Грешен псевдоним или парола.',

@@ -10,6 +10,12 @@ ENERGY_RATE = 5;  ENERGY_TICK = 300
 NERVE_RATE  = 1;  NERVE_TICK  = 300
 HEALTH_RATE = 1;  HEALTH_TICK = 60
 
+# ── VIP tier bonuses ────────────────────────────────────────────────────
+VIP_XP_MULT      = {0: 1.0,  1: 1.10, 2: 1.25, 3: 1.50}
+VIP_CASH_MULT    = {0: 1.0,  1: 1.05, 2: 1.10, 3: 1.20}
+VIP_REGEN_MULT   = {0: 1.0,  1: 1.0,  2: 1.05, 3: 1.10}
+VIP_COMBAT_BONUS = {0: 0,    1: 0,    2: 0,    3: 10}
+
 
 def _now():
     return datetime.utcnow()
@@ -23,6 +29,7 @@ def lazy_regen(db, user_id):
     p = dict(row)
     now = _now()
     updates = {}
+    regen_mult = VIP_REGEN_MULT.get(get_vip_tier(p), 1.0)
 
     def regen_bar(bar, mx, ts_col, rate, tick):
         cur = p[bar]
@@ -45,7 +52,7 @@ def lazy_regen(db, user_id):
         ticks = int(elapsed // tick)
         if ticks <= 0:
             return
-        gained = ticks * rate
+        gained = int(ticks * rate * regen_mult)
         new_val = min(cur + gained, cap)
         updates[bar] = new_val
         updates[ts_col] = (ts + timedelta(seconds=ticks * tick)).isoformat()
@@ -89,6 +96,27 @@ def is_in_hospital(player):
 def is_protected(player):
     prot = _norm_ts(player.get('protection_until'))
     return bool(prot and prot > _now_sql())
+
+
+def get_vip_tier(player):
+    """Return active VIP tier integer (0 if none or expired)."""
+    tier = player.get('vip_tier') or 0
+    if not tier:
+        return 0
+    vip_until = player.get('vip_until')
+    if not vip_until:
+        return 0
+    return tier if _norm_ts(vip_until) > _now_sql() else 0
+
+
+def get_active_boost(db, user_id, boost_type):
+    """Return multiplier if boost is active, else None."""
+    now_iso = _now_sql()
+    row = db.execute(
+        "SELECT multiplier FROM player_boosts WHERE user_id=? AND boost_type=? AND expires_at > ?",
+        (user_id, boost_type, now_iso)
+    ).fetchone()
+    return row['multiplier'] if row else None
 
 
 def is_online(user_row, timeout_minutes=5):
@@ -160,8 +188,9 @@ def _effective_stats(player, db):
         row = db.execute("SELECT def FROM items WHERE id=?", (player['equipped_armor'],)).fetchone()
         if row: a_def = row['def']
 
-    eff_atk = player['strength'] * (1 + w_atk / 100.0) + (c_atk + d_atk) * 0.1
-    eff_def = player['strength'] * 0.5 + player['stamina'] * 0.5 + a_def
+    combat_bonus = VIP_COMBAT_BONUS.get(get_vip_tier(player), 0)
+    eff_atk = player['strength'] * (1 + w_atk / 100.0) + (c_atk + d_atk) * 0.1 + combat_bonus
+    eff_def = player['strength'] * 0.5 + player['stamina'] * 0.5 + a_def + combat_bonus
     return eff_atk, eff_def
 
 

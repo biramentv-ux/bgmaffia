@@ -4,7 +4,9 @@ from flask import Blueprint, render_template, redirect, url_for, flash, g, reque
 from .i18n import tf
 from .auth import login_required
 from .db import get_db
-from .game import crime_success_chance, maybe_level_up, mission_progress, check_achievements, _notify
+from .game import (crime_success_chance, maybe_level_up, mission_progress,
+                   check_achievements, _notify,
+                   get_active_boost, get_vip_tier, VIP_CASH_MULT, VIP_XP_MULT)
 
 bp = Blueprint('crimes', __name__)
 
@@ -67,6 +69,12 @@ def commit(crime_id):
     if succeeded:
         payout = random.randint(crime['payout_min'], crime['payout_max'])
         xp_gain = crime['xp_reward']
+        # Apply active boosts and VIP multipliers
+        vip = get_vip_tier(player)
+        crime_mult = (get_active_boost(db, uid, 'crime_boost') or 1.0) * VIP_CASH_MULT.get(vip, 1.0)
+        xp_mult    = (get_active_boost(db, uid, 'xp_boost')   or 1.0) * VIP_XP_MULT.get(vip, 1.0)
+        payout  = int(payout  * crime_mult)
+        xp_gain = int(xp_gain * xp_mult)
         db.execute(
             "UPDATE players SET energy=energy-?, cash=cash+?, xp=xp+?, respect=respect+?, "
             "total_crimes=total_crimes+?, total_earned=total_earned+? WHERE user_id=? AND energy>=?",
