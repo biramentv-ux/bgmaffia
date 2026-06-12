@@ -214,13 +214,16 @@ def resolve_fight(db, attacker_id, defender_id):
 
     if winner_id == attacker_id:
         pct = random.uniform(0.10, 0.20)
-        cash_stolen = int(def_p['cash'] * pct)
         lvl_diff = atk_p['level'] - def_p['level']
         respect_gain = max(1, 10 - lvl_diff)   # punish punching down
-        outcome = f"Victory! Stole ${cash_stolen:,}"
         hosp_mins = random.randint(15, 30)
 
         db.execute("BEGIN IMMEDIATE")
+        # Re-read defender cash under the lock: their balance may have changed
+        # during fight simulation, and stealing from a stale snapshot mints cash.
+        def_cash = db.execute("SELECT cash FROM players WHERE user_id=?", (defender_id,)).fetchone()['cash']
+        cash_stolen = int(def_cash * pct)
+        outcome = f"Victory! Stole ${cash_stolen:,}"
         # Transfer cash
         db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (cash_stolen, attacker_id))
         db.execute("UPDATE players SET cash=MAX(0,cash-?), health=1, hospital_until=datetime('now',?), protection_until=datetime('now','+15 minutes'), health_ts=? WHERE user_id=?",
@@ -244,12 +247,13 @@ def resolve_fight(db, attacker_id, defender_id):
 
     elif winner_id == defender_id:
         pct = random.uniform(0.05, 0.10)
-        cash_stolen = int(atk_p['cash'] * pct)
         respect_gain = max(1, 5)
-        outcome = f"Defeat! Lost ${cash_stolen:,}"
         hosp_mins = random.randint(10, 20)
 
         db.execute("BEGIN IMMEDIATE")
+        atk_cash = db.execute("SELECT cash FROM players WHERE user_id=?", (attacker_id,)).fetchone()['cash']
+        cash_stolen = int(atk_cash * pct)
+        outcome = f"Defeat! Lost ${cash_stolen:,}"
         db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (cash_stolen, defender_id))
         db.execute("UPDATE players SET cash=MAX(0,cash-?), health=1, hospital_until=datetime('now',?), health_ts=? WHERE user_id=?",
                    (cash_stolen, f'+{hosp_mins} minutes', now, attacker_id))
@@ -292,12 +296,7 @@ def _check_achievements(db, user_id):
     territories_owned = db.execute(
         "SELECT COUNT(*) FROM territories WHERE owner_user=?", (user_id,)
     ).fetchone()[0]
-    casino_wins = db.execute(
-        "SELECT COALESCE(progress,0) FROM player_missions pm JOIN missions m ON pm.mission_id=m.id "
-        "WHERE pm.user_id=? AND m.req_json LIKE '%\"casino\"%' AND m.is_daily=0 LIMIT 1",
-        (user_id,)
-    ).fetchone()
-    casino_win_count = casino_wins[0] if casino_wins else 0
+    casino_win_count = p.get('total_casino_wins', 0) or 0
 
     checks = [
         (1, p['total_fights_won'] >= 1),
@@ -472,8 +471,12 @@ def draw_lottery(db, house_cut=0.10):
     winner = random.choice(pool)
     prize = int(draw['pot'] * (1 - house_cut))
     db.execute("BEGIN IMMEDIATE")
-    db.execute("UPDATE lottery_draws SET status='drawn', winner_id=?, drawn_at=datetime('now') WHERE id=? AND status='open'",
-               (winner, draw['id']))
+    cur = db.execute("UPDATE lottery_draws SET status='drawn', winner_id=?, drawn_at=datetime('now') WHERE id=? AND status='open'",
+                     (winner, draw['id']))
+    if cur.rowcount == 0:
+        # Another caller (scheduler vs lazy fallback) already closed this draw.
+        db.execute("ROLLBACK")
+        return
     db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (prize, winner))
     _notify(db, winner, f"🎟️ You WON the lottery! ${prize:,} in cash.")
     db.execute("INSERT INTO lottery_draws(status) VALUES('open')")

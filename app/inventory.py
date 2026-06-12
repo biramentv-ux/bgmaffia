@@ -38,16 +38,21 @@ def inventory_page():
 def equip(inv_id):
     db = get_db()
     uid = g.player['user_id']
+    db.execute("BEGIN IMMEDIATE")
+    # Read inside the lock so a concurrent list/consume can't remove the item
+    # between our check and the equip write.
     row = db.execute(
         "SELECT inv.item_id, i.type FROM inventory inv JOIN items i ON inv.item_id=i.id WHERE inv.id=? AND inv.user_id=?",
         (inv_id, uid)
     ).fetchone()
     if not row:
+        db.execute("ROLLBACK")
         flash(tf("Item not found in inventory."), 'error')
         return redirect(url_for('inventory.inventory_page'))
 
     slot = EQUIP_SLOTS.get(row['type'])
     if not slot:
+        db.execute("ROLLBACK")
         flash(tf("This item type cannot be equipped."), 'error')
         return redirect(url_for('inventory.inventory_page'))
 

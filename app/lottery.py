@@ -62,6 +62,15 @@ def buy_tickets():
     cost = qty * price
     draw = get_open_draw(db)  # may commit if it creates a draw — keep outside the txn
     db.execute("BEGIN IMMEDIATE")
+    # Re-check the draw is still open: the hourly scheduler may have closed it
+    # between get_open_draw() and acquiring the write lock.
+    still_open = db.execute(
+        "SELECT id FROM lottery_draws WHERE id=? AND status='open'", (draw['id'],)
+    ).fetchone()
+    if not still_open:
+        db.execute("ROLLBACK")
+        flash(tf("The draw just closed — try again for the next one."), 'error')
+        return redirect(url_for('lottery.lottery_page'))
     cash = db.execute("SELECT cash FROM players WHERE user_id=?", (uid,)).fetchone()['cash']
     if cash < cost:
         db.execute("ROLLBACK")

@@ -71,8 +71,9 @@ CREATE TABLE IF NOT EXISTS players (
     city_id          INTEGER DEFAULT 1,
     job_id           INTEGER,
     education_level  INTEGER DEFAULT 0,
-    total_crimes     INTEGER DEFAULT 0,
-    total_fights_won INTEGER DEFAULT 0,
+    total_crimes      INTEGER DEFAULT 0,
+    total_fights_won  INTEGER DEFAULT 0,
+    total_casino_wins INTEGER DEFAULT 0,
     total_earned     INTEGER DEFAULT 0
 );
 

@@ -8,3 +8,4 @@ instance/
 .env
 .venv
 venv/
+.secret_key

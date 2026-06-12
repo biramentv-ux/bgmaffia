@@ -43,20 +43,26 @@ def list_item():
         flash(tf("Price must be positive."), 'error')
         return redirect(url_for('market.market_page'))
 
+    expires = (datetime.utcnow() + timedelta(days=7)).isoformat()
+    db.execute("BEGIN IMMEDIATE")
+    # Read inside the lock so a double-submit can't list the same item twice.
     inv = db.execute(
         "SELECT inv.item_id, inv.qty, i.stackable FROM inventory inv JOIN items i ON inv.item_id=i.id WHERE inv.id=? AND inv.user_id=?",
         (inv_id, uid)
     ).fetchone()
     if not inv:
+        db.execute("ROLLBACK")
         flash(tf("Item not in your inventory."), 'error')
         return redirect(url_for('market.market_page'))
 
-    expires = (datetime.utcnow() + timedelta(days=7)).isoformat()
-    db.execute("BEGIN IMMEDIATE")
     if inv['qty'] > 1 and inv['stackable']:
-        db.execute("UPDATE inventory SET qty=qty-1 WHERE id=?", (inv_id,))
+        cur = db.execute("UPDATE inventory SET qty=qty-1 WHERE id=? AND qty>1", (inv_id,))
     else:
-        db.execute("DELETE FROM inventory WHERE id=?", (inv_id,))
+        cur = db.execute("DELETE FROM inventory WHERE id=?", (inv_id,))
+    if cur.rowcount == 0:
+        db.execute("ROLLBACK")
+        flash(tf("Item not in your inventory."), 'error')
+        return redirect(url_for('market.market_page'))
         # Clear any equipped slot that referenced this item so the seller
         # doesn't keep combat bonuses from an item they no longer own.
         item_id = inv['item_id']
@@ -128,11 +134,18 @@ def buy_listing(listing_id):
 def cancel_listing(listing_id):
     db = get_db()
     uid = g.player['user_id']
+    db.execute("BEGIN IMMEDIATE")
     listing = db.execute("SELECT * FROM marketplace WHERE id=? AND seller_id=? AND status='active'", (listing_id, uid)).fetchone()
     if not listing:
+        db.execute("ROLLBACK")
         flash(tf("Listing not found."), 'error')
         return redirect(url_for('market.market_page'))
-    db.execute("UPDATE marketplace SET status='cancelled' WHERE id=?", (listing_id,))
+    # Guarded update: don't overwrite 'sold' if a buyer raced us to it.
+    cur = db.execute("UPDATE marketplace SET status='cancelled' WHERE id=? AND status='active'", (listing_id,))
+    if cur.rowcount == 0:
+        db.execute("ROLLBACK")
+        flash(tf("Listing not found."), 'error')
+        return redirect(url_for('market.market_page'))
     db.execute("INSERT INTO inventory(user_id,item_id,qty) VALUES(?,?,1)", (uid, listing['item_id']))
     db.commit()
     flash(tf("Listing cancelled, item returned."), 'success')

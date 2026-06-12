@@ -237,8 +237,10 @@ def collect_territory(tid):
     db = get_db()
     uid = g.player['user_id']
     now = datetime.utcnow()
+    db.execute("BEGIN IMMEDIATE")
     territory = db.execute("SELECT * FROM territories WHERE id=? AND owner_user=?", (tid, uid)).fetchone()
     if not territory:
+        db.execute("ROLLBACK")
         flash("You don't own this territory.", 'error')
         return redirect(url_for('gang.territory_page'))
     last = territory['last_collected']
@@ -251,10 +253,19 @@ def collect_territory(tid):
         elapsed_hours = 0
     income = int(territory['income_per_hour'] * elapsed_hours)
     if income <= 0:
+        db.execute("ROLLBACK")
+        flash(tf("Nothing to collect yet."), 'info')
+        return redirect(url_for('gang.territory_page'))
+    # Guarded update: only one request can win the timestamp transition.
+    cur = db.execute(
+        "UPDATE territories SET last_collected=? WHERE id=? AND (last_collected IS ? OR last_collected=?)",
+        (now.isoformat(), tid, last, last)
+    )
+    if cur.rowcount == 0:
+        db.execute("ROLLBACK")
         flash(tf("Nothing to collect yet."), 'info')
         return redirect(url_for('gang.territory_page'))
     db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (income, uid))
-    db.execute("UPDATE territories SET last_collected=? WHERE id=?", (now.isoformat(), tid))
     db.commit()
     flash(f"💰 Collected ${income:,} from {territory['name']}.", 'success')
     return redirect(url_for('gang.territory_page'))

@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, g, reque
 from .i18n import tf
 from .auth import login_required
 from .db import get_db
-from .game import mission_progress
+from .game import mission_progress, check_achievements
 
 bp = Blueprint('casino', __name__)
 
@@ -40,13 +40,15 @@ def dice():
     roll = random.randint(1, 6)
     if roll == guess:
         winnings = bet * 5
-        db.execute("UPDATE players SET cash=cash+? WHERE user_id=? AND cash>=?", (winnings, uid, 0))
+        db.execute("UPDATE players SET cash=cash+?, total_casino_wins=total_casino_wins+1 WHERE user_id=? AND cash>=?", (winnings, uid, 0))
         flash(f"🎲 Rolled {roll}! You win ${winnings:,}!", 'success')
     else:
         db.execute("UPDATE players SET cash=cash-? WHERE user_id=? AND cash>=?", (bet, uid, bet))
         flash(f"🎲 Rolled {roll} (you guessed {guess}). Lost ${bet:,}.", 'error')
     db.commit()
     mission_progress(db, uid, 'casino')
+    if roll == guess:
+        check_achievements(db, uid)
     return redirect(url_for('casino.casino_page'))
 
 
@@ -88,12 +90,14 @@ def slots():
     multiplier = SLOT_PAYOUTS.get(combo, 0)
     if multiplier:
         winnings = bet * multiplier
-        db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (winnings, uid))
+        db.execute("UPDATE players SET cash=cash+?, total_casino_wins=total_casino_wins+1 WHERE user_id=?", (winnings, uid))
         flash(f"🎰 {' '.join(reels)} — JACKPOT! +${winnings:,}!", 'success')
     else:
         flash(f"🎰 {' '.join(reels)} — No match. Lost ${bet:,}.", 'error')
     db.commit()
     mission_progress(db, uid, 'casino')
+    if multiplier:
+        check_achievements(db, uid)
     return redirect(url_for('casino.casino_page'))
 
 
@@ -171,8 +175,10 @@ def bj_hit():
     import json as _json
     db = get_db()
     uid = g.player['user_id']
+    db.execute("BEGIN IMMEDIATE")
     row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
     if not row:
+        db.execute("ROLLBACK")
         flash(tf("No active blackjack game."), 'error')
         return redirect(url_for('casino.casino_page'))
     bj = _json.loads(row['state_json'])
@@ -193,30 +199,39 @@ def bj_hit():
                            pv=pv, bet=bj['bet'])
 
 
+def _consume_bj_session(db, uid):
+    """Read and delete the blackjack session atomically under a write lock.
+    Returns the state dict, or None if there was no session (or another
+    request already consumed it)."""
+    import json as _json
+    db.execute("BEGIN IMMEDIATE")
+    row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
+    if not row:
+        db.execute("ROLLBACK")
+        return None
+    cur = db.execute("DELETE FROM bj_sessions WHERE user_id=?", (uid,))
+    if cur.rowcount == 0:
+        db.execute("ROLLBACK")
+        return None
+    db.commit()
+    return _json.loads(row['state_json'])
+
+
 @bp.route('/casino/blackjack/stand', methods=['POST'])
 @login_required
 def bj_stand():
-    import json as _json
     db = get_db()
     uid = g.player['user_id']
-    row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
-    if not row:
+    bj = _consume_bj_session(db, uid)
+    if not bj:
         flash(tf("No active blackjack game."), 'error')
         return redirect(url_for('casino.casino_page'))
-    bj = _json.loads(row['state_json'])
-    db.execute("DELETE FROM bj_sessions WHERE user_id=?", (uid,))
-    db.commit()
     return _bj_resolve(uid, db, 'stand', bj)
 
 
 def _bj_resolve(uid, db, reason, bj=None):
-    import json as _json
     if bj is None:
-        row = db.execute("SELECT state_json FROM bj_sessions WHERE user_id=?", (uid,)).fetchone()
-        if row:
-            bj = _json.loads(row['state_json'])
-            db.execute("DELETE FROM bj_sessions WHERE user_id=?", (uid,))
-            db.commit()
+        bj = _consume_bj_session(db, uid)
     if not bj:
         return redirect(url_for('casino.casino_page'))
     dealer_hand = bj['dealer']
@@ -229,14 +244,14 @@ def _bj_resolve(uid, db, reason, bj=None):
 
     if reason == 'blackjack':
         winnings = int(bet * 2.5)
-        db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (winnings, uid))
+        db.execute("UPDATE players SET cash=cash+?, total_casino_wins=total_casino_wins+1 WHERE user_id=?", (winnings, uid))
         db.commit()
         flash(f"🃏 Blackjack! Won ${winnings:,}!", 'success')
     elif pv > 21:
         flash(f"🃏 Bust ({pv}). Dealer: {dv}. Lost ${bet:,}.", 'error')
     elif dv > 21 or pv > dv:
         winnings = bet * 2
-        db.execute("UPDATE players SET cash=cash+? WHERE user_id=?", (winnings, uid))
+        db.execute("UPDATE players SET cash=cash+?, total_casino_wins=total_casino_wins+1 WHERE user_id=?", (winnings, uid))
         db.commit()
         flash(f"🃏 You win! {pv} vs {dv}. Won ${winnings:,}!", 'success')
     elif pv == dv:
@@ -246,4 +261,6 @@ def _bj_resolve(uid, db, reason, bj=None):
     else:
         flash(f"🃏 Dealer wins. {pv} vs {dv}. Lost ${bet:,}.", 'error')
     mission_progress(db, uid, 'casino')
+    if reason == 'blackjack' or (pv <= 21 and (dv > 21 or pv > dv)):
+        check_achievements(db, uid)
     return redirect(url_for('casino.casino_page'))
