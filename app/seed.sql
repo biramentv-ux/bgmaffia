@@ -73,6 +73,34 @@ INSERT OR IGNORE INTO achievements (id,code,name,descr) VALUES
 (9,'territory_king', 'Territory King',  'Own 3 territories simultaneously'),
 (10,'lucky',         'Lucky',           'Win at the casino 10 times');
 
+-- NPC Enemies for PvE
+INSERT OR IGNORE INTO npc_enemies (id,name,icon,min_level,energy_cost,atk,def,hp,payout_min,payout_max,xp_reward,drop_item_id,drop_chance) VALUES
+(1,'Street Junkie',  '🧟', 1, 5, 5, 2, 30,  20,  60,  3, 15, 0.15),
+(2,'Mugger',         '🔪', 3, 7,12, 5, 50,  50, 110,  6, 16, 0.10),
+(3,'Street Thug',    '💢', 6, 8,22, 8, 80, 100, 220, 10, 16, 0.10),
+(4,'Gang Enforcer',  '🗡️',10,10,38,15,130, 200, 440, 18, 17, 0.10),
+(5,'Crime Underboss','👊',15,12,58,25,190, 450, 900, 30, 18, 0.12),
+(6,'Cartel Boss',    '💀',22,15,90,42,280, 900,1800, 55, 14, 0.20);
+
+-- Skills (passive MMORPG skill tree)
+INSERT OR IGNORE INTO skills (id,code,name,icon,category,cost,effect_json,requires,descr) VALUES
+-- Combat
+(1,'street_brawler','Street Brawler','👊','combat',1,'{"fight_dmg":0.10}',NULL,'+10% damage in all fights'),
+(2,'iron_skin',     'Iron Skin',     '🛡️','combat',2,'{"fight_def":0.10}','street_brawler','+10% defense in all fights'),
+(3,'berserker',     'Berserker',     '⚡','combat',3,'{"fight_dmg":0.20}','iron_skin','+20% extra damage in fights'),
+-- Criminal
+(4,'five_finger',   'Five Finger',   '🤞','criminal',1,'{"crime_success":0.10}',NULL,'+10% crime success rate'),
+(5,'fast_getaway',  'Fast Getaway',  '🏃','criminal',2,'{"crime_cd":0.20}','five_finger','-20% crime cooldowns'),
+(6,'crime_master',  'Crime Master',  '💰','criminal',3,'{"crime_cash":0.15}','fast_getaway','+15% crime payout'),
+-- Survival
+(7,'adrenaline',    'Adrenaline',    '💉','survival',1,'{"regen_mult":0.15}',NULL,'+15% regen speed for all bars'),
+(8,'quick_healer',  'Quick Healer',  '⛑️','survival',2,'{"hospital_mult":0.30}','adrenaline','-30% hospital stay time'),
+(9,'iron_will',     'Iron Will',     '💪','survival',3,'{"tough":1}','quick_healer','+25 permanent max health on unlock'),
+-- Hustle
+(10,'card_counter', 'Card Counter',  '🃏','hustle',1,'{"casino_mult":0.10}',NULL,'+10% casino winnings'),
+(11,'gang_connect', 'Gang Connect',  '🤝','hustle',2,'{"territory_mult":0.15}','card_counter','+15% territory income'),
+(12,'kingpin',      'Kingpin',       '👑','hustle',3,'{"crime_cash":0.15,"territory_mult":0.10}','gang_connect','+15% crime cash & +10% territory income');
+
 -- Crypto starting prices (2026 update)
 INSERT INTO crypto_prices (symbol, price)
 SELECT 'SHDW', 100.0 WHERE NOT EXISTS (SELECT 1 FROM crypto_prices WHERE symbol='SHDW');

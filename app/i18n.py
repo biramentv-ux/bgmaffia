@@ -353,6 +353,27 @@ BG = {
     'When': 'Кога',
     'No draws completed yet. Be the first winner!': 'Още няма теглене. Бъди първият късметлия!',
 
+    # ── Character Classes ─────────────────────────────────────────────
+    'Choose Your Class': 'Избери своя образ',
+    'Class': 'Клас',
+
+    # ── Street Encounters (PvE) ───────────────────────────────────────
+    'Street Encounters': 'Улични срещи',
+    'Fight NPC enemies to earn cash, XP, and rare loot drops.': 'Бий се с NPC врагове за пари, опит и рядко плячкосване.',
+    'Min Level': 'Мин. ниво',
+    'Fight!': 'Бий се!',
+    'Recent Encounters': 'Последни срещи',
+    'Enemy not found.': 'Врагът не е намерен.',
+    'Reach level': 'Достигни ниво',
+
+    # ── Skill Tree ────────────────────────────────────────────────────
+    'Skill Tree': 'Дърво на уменията',
+    'Unlock passive abilities that permanently boost your performance. Skill points are earned by levelling up.':
+        'Отключи пасивни умения, които постоянно те засилват. Точки умения се печелят при leveling.',
+    'Unlocked': 'Отключено',
+    'Unlock': 'Отключи',
+    'Skill not found.': 'Умението не е намерено.',
+
     # ── Premium Store ────────────────────────────────────────────────
     'Premium Store': 'Премиум магазин',
     'Demo mode': 'Демо режим',

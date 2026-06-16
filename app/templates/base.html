@@ -22,8 +22,10 @@
       <li><a href="{{ url_for('home.profile', uid=player.user_id) }}">👤 {{ t('Profile') }}</a></li>
       <li class="nav-sep">{{ t('HUSTLE') }}</li>
       <li><a href="{{ url_for('crimes.crimes_page') }}">💰 {{ t('Crimes') }}</a></li>
+      <li><a href="{{ url_for('pve.pve_page') }}">🗡️ {{ t('Street Encounters') }}</a></li>
       <li><a href="{{ url_for('gym.gym_page') }}">💪 {{ t('Gym') }}</a></li>
       <li><a href="{{ url_for('fight.attack_page') }}">⚔️ {{ t('Attack') }}</a></li>
+      <li><a href="{{ url_for('skills.skills_page') }}">🧬 {{ t('Skill Tree') }}</a></li>
       <li class="nav-sep">{{ t('ECONOMY') }}</li>
       <li><a href="{{ url_for('bank.bank_page') }}">🏦 {{ t('Bank') }}</a></li>
       <li><a href="{{ url_for('shop.shop_page') }}">🛒 {{ t('Shop') }}</a></li>

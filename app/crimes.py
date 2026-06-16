@@ -6,7 +6,8 @@ from .auth import login_required
 from .db import get_db
 from .game import (crime_success_chance, maybe_level_up, mission_progress,
                    check_achievements, _notify,
-                   get_active_boost, get_vip_tier, VIP_CASH_MULT, VIP_XP_MULT)
+                   get_active_boost, get_vip_tier, VIP_CASH_MULT, VIP_XP_MULT,
+                   get_class, get_skill_bonuses)
 
 bp = Blueprint('crimes', __name__)
 
@@ -66,14 +67,22 @@ def commit(crime_id):
     succeeded = random.random() < success_chance
     payout = 0
 
+    # Bonuses (computed once; used in both success and jail paths)
+    cls    = get_class(player)
+    skills = get_skill_bonuses(db, uid)
+    vip    = get_vip_tier(player)
+
     if succeeded:
-        payout = random.randint(crime['payout_min'], crime['payout_max'])
+        payout  = random.randint(crime['payout_min'], crime['payout_max'])
         xp_gain = crime['xp_reward']
-        # Apply active boosts and VIP multipliers
-        vip = get_vip_tier(player)
-        crime_mult = (get_active_boost(db, uid, 'crime_boost') or 1.0) * VIP_CASH_MULT.get(vip, 1.0)
-        xp_mult    = (get_active_boost(db, uid, 'xp_boost')   or 1.0) * VIP_XP_MULT.get(vip, 1.0)
-        payout  = int(payout  * crime_mult)
+        # Cash: class × VIP × active boost × skill
+        cash_mult = (cls['crime_payout']
+                     * VIP_CASH_MULT.get(vip, 1.0)
+                     * (get_active_boost(db, uid, 'crime_boost') or 1.0)
+                     * (1 + skills['crime_cash']))
+        # XP: VIP × active boost
+        xp_mult = VIP_XP_MULT.get(vip, 1.0) * (get_active_boost(db, uid, 'xp_boost') or 1.0)
+        payout  = int(payout  * cash_mult)
         xp_gain = int(xp_gain * xp_mult)
         db.execute(
             "UPDATE players SET energy=energy-?, cash=cash+?, xp=xp+?, respect=respect+?, "
@@ -89,14 +98,16 @@ def commit(crime_id):
             (crime['energy_cost'], 1, uid, crime['energy_cost'])
         )
         if jailed:
+            jail_sec = max(30, int(crime['jail_sec'] * cls['jail_mult']))
             db.execute(
                 "UPDATE players SET jail_until=datetime('now',?), cash=0 WHERE user_id=?",
-                (f'+{crime["jail_sec"]} seconds', uid)
+                (f'+{jail_sec} seconds', uid)
             )
             db.execute("UPDATE players SET total_crimes=total_crimes-1 WHERE user_id=?", (uid,))  # undo double-count
 
-    # Set cooldown
-    next_at = (now.timestamp() + crime['cooldown_sec'])
+    # Set cooldown (reduced by fast_getaway skill)
+    cd_secs = max(10, int(crime['cooldown_sec'] * (1 - skills['crime_cd'])))
+    next_at = (now.timestamp() + cd_secs)
     next_at_iso = datetime.utcfromtimestamp(next_at).isoformat()
     db.execute(
         "INSERT INTO crime_cooldowns(user_id,crime_id,next_at) VALUES(?,?,?) "

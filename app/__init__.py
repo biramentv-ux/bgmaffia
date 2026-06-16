@@ -111,11 +111,14 @@ def create_app(config=None):
     from .business  import bp as business_bp
     from .lottery   import bp as lottery_bp
     from .store     import bp as store_bp
+    from .pve       import bp as pve_bp
+    from .skills    import bp as skills_bp
 
     for bp in [auth_bp, home_bp, crimes_bp, gym_bp, fight_bp, hospital_bp,
                jail_bp, bank_bp, shop_bp, inventory_bp, market_bp, gang_bp,
                casino_bp, social_bp, missions_bp, rank_bp, admin_bp,
-               daily_bp, crypto_bp, business_bp, lottery_bp, store_bp]:
+               daily_bp, crypto_bp, business_bp, lottery_bp, store_bp,
+               pve_bp, skills_bp]:
         app.register_blueprint(bp)
 
     # Serve the service worker from the root so it can control the whole app

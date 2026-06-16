@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Street Encounters – Syndicate Streets{% endblock %}
+{% block content %}
+<style>
+  .enemy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+  .enemy-card{background:#1a1a2e;border:1px solid #374151;border-radius:10px;padding:18px;text-align:center;position:relative}
+  .enemy-card.locked{opacity:.45;pointer-events:none}
+  .enemy-card.hard{border-color:#dc2626}
+  .enemy-card.medium{border-color:#f59e0b}
+  .enemy-card.easy{border-color:#16a34a}
+  .enemy-icon{font-size:3rem;margin-bottom:6px}
+  .enemy-name{font-size:1rem;font-weight:700;color:#e5e7eb;margin-bottom:4px}
+  .enemy-level{font-size:.78rem;color:#6b7280;margin-bottom:8px}
+  .enemy-stats{display:flex;justify-content:center;gap:14px;font-size:.78rem;color:#9ca3af;margin-bottom:10px}
+  .enemy-reward{font-size:.8rem;color:#4ade80;margin-bottom:12px}
+  .btn-fight{background:#7f1d1d;color:#fca5a5;border:none;border-radius:6px;padding:10px 20px;width:100%;cursor:pointer;font-weight:700;font-size:.9rem;transition:background .2s}
+  .btn-fight:hover{background:#991b1b}
+  .locked-msg{font-size:.75rem;color:#6b7280;margin-top:8px}
+  .energy-cost{font-size:.75rem;color:#60a5fa}
+
+  .pve-log table{width:100%;border-collapse:collapse;font-size:.85rem}
+  .pve-log th{color:#6b7280;text-align:left;padding:5px 8px;border-bottom:1px solid #374151}
+  .pve-log td{padding:5px 8px;border-bottom:1px solid #1f2937;color:#d1d5db}
+  .win-row td{color:#4ade80}
+  .loss-row td{color:#f87171}
+</style>
+
+<h2>🗡️ {{ t('Street Encounters') }}</h2>
+<p style="color:#9ca3af;margin-bottom:20px">{{ t('Fight NPC enemies to earn cash, XP, and rare loot drops.') }}
+  {{ t('Energy') }}: <strong>{{ player.energy }}/{{ player.energy_max }}</strong></p>
+
+<div class="enemy-grid">
+  {% for e in enemies %}
+  {% set locked = player.level < e.min_level %}
+  {% set diff = 'easy' if e.min_level <= 5 else ('medium' if e.min_level <= 15 else 'hard') %}
+  <div class="enemy-card {{ diff }} {% if locked %}locked{% endif %}">
+    <div class="enemy-icon">{{ e.icon }}</div>
+    <div class="enemy-name">{{ e.name }}</div>
+    <div class="enemy-level">{{ t('Min Level') }} {{ e.min_level }}</div>
+    <div class="enemy-stats">
+      <span>⚔️ ATK {{ e.atk }}</span>
+      <span>🛡️ DEF {{ e.def }}</span>
+      <span>❤️ HP {{ e.hp }}</span>
+    </div>
+    <div class="enemy-reward">💰 ${{ e.payout_min }}–${{ e.payout_max }} · ✨ {{ e.xp_reward }} XP
+      {% if e.drop_item_id %}<br>🎁 {{ (e.drop_chance * 100)|int }}% item drop{% endif %}
+    </div>
+    <div class="energy-cost">⚡ {{ e.energy_cost }} {{ t('energy') }}</div>
+    {% if not locked %}
+    <form method="post" action="{{ url_for('pve.fight_npc', enemy_id=e.id) }}" style="margin-top:10px">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-fight"
+        {% if player.energy < e.energy_cost %}disabled style="opacity:.5"{% endif %}>
+        {{ t('Fight!') }}
+      </button>
+    </form>
+    {% else %}
+    <div class="locked-msg">🔒 {{ t('Reach level') }} {{ e.min_level }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% if recent %}
+<div class="card pve-log">
+  <h3>📋 {{ t('Recent Encounters') }}</h3>
+  <table>
+    <thead><tr><th>{{ t('Enemy') }}</th><th>{{ t('Result') }}</th><th>{{ t('Payout') }}</th><th>XP</th><th>{{ t('Time') }}</th></tr></thead>
+    <tbody>
+    {% for r in recent %}
+    <tr class="{{ 'win-row' if r.won else 'loss-row' }}">
+      <td>{{ r.enemy_icon }} {{ r.enemy_name }}</td>
+      <td>{{ '✅ Win' if r.won else '💀 Loss' }}</td>
+      <td>{% if r.payout %}${{ "{:,}".format(r.payout) }}{% endif %}</td>
+      <td>{% if r.xp_gain %}+{{ r.xp_gain }}{% endif %}</td>
+      <td class="muted small">{{ r.ts[:16] }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

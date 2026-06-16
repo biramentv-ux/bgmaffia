@@ -2,6 +2,7 @@ from .i18n import tf
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from .db import get_db
+from .game import CLASSES
 
 bp = Blueprint('auth', __name__)
 
@@ -21,10 +22,13 @@ def register():
     if 'user_id' in session:
         return redirect(url_for('home.dashboard'))
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        email    = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
-        confirm  = request.form.get('confirm', '')
+        username    = request.form.get('username', '').strip()
+        email       = request.form.get('email', '').strip()
+        password    = request.form.get('password', '')
+        confirm     = request.form.get('confirm', '')
+        player_class= request.form.get('player_class', 'enforcer')
+        if player_class not in CLASSES:
+            player_class = 'enforcer'
         db = get_db()
         error = None
         if not username or len(username) < 3:
@@ -41,7 +45,7 @@ def register():
             error = "Email already registered."
         if error:
             flash(error, 'error')
-            return render_template('auth/register.html')
+            return render_template('auth/register.html', classes=CLASSES)
         ph = generate_password_hash(password)
         cur = db.execute(
             "INSERT INTO users(username,email,password_hash) VALUES(?,?,?)",
@@ -49,15 +53,18 @@ def register():
         )
         db.commit()
         uid = cur.lastrowid
+        cls = CLASSES[player_class]
+        s = cls['stats']
         db.execute(
-            "INSERT INTO players(user_id,energy_ts,nerve_ts,health_ts) VALUES(?,datetime('now'),datetime('now'),datetime('now'))",
-            (uid,)
+            "INSERT INTO players(user_id,player_class,strength,stamina,intellect,sexappeal,"
+            "energy_ts,nerve_ts,health_ts) VALUES(?,?,?,?,?,?,datetime('now'),datetime('now'),datetime('now'))",
+            (uid, player_class, s['strength'], s['stamina'], s['intellect'], s['sexappeal'])
         )
         db.commit()
         session['user_id'] = uid
-        flash(f"Welcome to Syndicate Streets, {username}! You start with $1,000 in the bank.", 'success')
+        flash(f"Welcome, {username}! You chose {cls['icon']} {cls['name']}. Good luck on the streets.", 'success')
         return redirect(url_for('home.dashboard'))
-    return render_template('auth/register.html')
+    return render_template('auth/register.html', classes=CLASSES)
 
 
 @bp.route('/login', methods=['GET', 'POST'])

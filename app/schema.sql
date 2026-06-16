@@ -355,3 +355,55 @@ CREATE TABLE IF NOT EXISTS player_boosts (
     PRIMARY KEY (user_id, boost_type)
 );
 CREATE INDEX IF NOT EXISTS idx_boosts_user ON player_boosts(user_id, expires_at);
+
+-- ── MMORPG expansion ────────────────────────────────────────────────────
+
+-- PvE enemies
+CREATE TABLE IF NOT EXISTS npc_enemies (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    name         TEXT NOT NULL,
+    icon         TEXT NOT NULL,
+    min_level    INTEGER DEFAULT 1,
+    energy_cost  INTEGER DEFAULT 5,
+    atk          INTEGER DEFAULT 10,
+    def          INTEGER DEFAULT 5,
+    hp           INTEGER DEFAULT 50,
+    payout_min   INTEGER DEFAULT 30,
+    payout_max   INTEGER DEFAULT 80,
+    xp_reward    INTEGER DEFAULT 5,
+    drop_item_id INTEGER REFERENCES items(id),
+    drop_chance  REAL DEFAULT 0.10
+);
+
+-- PvE combat log
+CREATE TABLE IF NOT EXISTS pve_log (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id  INTEGER NOT NULL,
+    enemy_id INTEGER NOT NULL,
+    won      INTEGER NOT NULL,
+    payout   INTEGER DEFAULT 0,
+    xp_gain  INTEGER DEFAULT 0,
+    ts       TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_pve_log ON pve_log(user_id, ts);
+
+-- Skill definitions
+CREATE TABLE IF NOT EXISTS skills (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    code         TEXT UNIQUE NOT NULL,
+    name         TEXT NOT NULL,
+    icon         TEXT NOT NULL,
+    category     TEXT NOT NULL,  -- combat|criminal|survival|hustle
+    cost         INTEGER DEFAULT 1,
+    effect_json  TEXT NOT NULL,
+    requires     TEXT,           -- skill code prerequisite
+    descr        TEXT NOT NULL
+);
+
+-- Unlocked skills per player
+CREATE TABLE IF NOT EXISTS player_skills (
+    user_id    INTEGER NOT NULL,
+    skill_code TEXT NOT NULL,
+    unlocked_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, skill_code)
+);

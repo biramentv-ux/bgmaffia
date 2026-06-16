@@ -16,6 +16,75 @@ VIP_CASH_MULT    = {0: 1.0,  1: 1.05, 2: 1.10, 3: 1.20}
 VIP_REGEN_MULT   = {0: 1.0,  1: 1.0,  2: 1.05, 3: 1.10}
 VIP_COMBAT_BONUS = {0: 0,    1: 0,    2: 0,    3: 10}
 
+# ── Character classes ────────────────────────────────────────────────────
+CLASSES = {
+    'enforcer': {
+        'name': 'Enforcer', 'icon': '💪',
+        'desc': 'Hard hitter. Max fight damage and faster hospital recovery.',
+        'stats': {'strength': 20, 'stamina': 10, 'intellect': 6, 'sexappeal': 4},
+        'fight_dmg': 1.20, 'fight_def': 1.0,
+        'crime_mult': 0.90, 'crime_payout': 1.0, 'casino_mult': 1.0,
+        'hospital_mult': 0.50, 'jail_mult': 1.0, 'regen_mult': 1.0,
+    },
+    'hacker': {
+        'name': 'Hacker', 'icon': '💻',
+        'desc': 'Brains over brawn. Best crime success and shorter jail time.',
+        'stats': {'strength': 5, 'stamina': 5, 'intellect': 20, 'sexappeal': 10},
+        'fight_dmg': 0.85, 'fight_def': 1.0,
+        'crime_mult': 1.20, 'crime_payout': 1.0, 'casino_mult': 1.0,
+        'hospital_mult': 1.0, 'jail_mult': 0.50, 'regen_mult': 1.0,
+    },
+    'conman': {
+        'name': 'Conman', 'icon': '🎭',
+        'desc': 'The silver tongue. Max crime cash and casino expert.',
+        'stats': {'strength': 5, 'stamina': 5, 'intellect': 10, 'sexappeal': 20},
+        'fight_dmg': 0.85, 'fight_def': 1.0,
+        'crime_mult': 1.0, 'crime_payout': 1.25, 'casino_mult': 1.10,
+        'hospital_mult': 1.0, 'jail_mult': 1.0, 'regen_mult': 1.0,
+    },
+    'ghost': {
+        'name': 'Ghost', 'icon': '👻',
+        'desc': 'Elusive predator. Best defense and fastest regeneration.',
+        'stats': {'strength': 12, 'stamina': 18, 'intellect': 5, 'sexappeal': 5},
+        'fight_dmg': 1.0, 'fight_def': 1.15,
+        'crime_mult': 0.90, 'crime_payout': 1.0, 'casino_mult': 1.0,
+        'hospital_mult': 1.0, 'jail_mult': 0.75, 'regen_mult': 1.20,
+    },
+}
+
+# Skills and their passive bonus keys (additive %)
+SKILL_EFFECTS = {
+    'street_brawler': {'fight_dmg': 0.10},
+    'iron_skin':      {'fight_def': 0.10},
+    'berserker':      {'fight_dmg': 0.20},
+    'five_finger':    {'crime_success': 0.10},
+    'fast_getaway':   {'crime_cd': 0.20},
+    'crime_master':   {'crime_cash': 0.15},
+    'adrenaline':     {'regen_mult': 0.15},
+    'quick_healer':   {'hospital_mult': 0.30},
+    'card_counter':   {'casino_mult': 0.10},
+    'gang_connect':   {'territory_mult': 0.15},
+    'kingpin':        {'crime_cash': 0.15, 'territory_mult': 0.10},
+}
+
+
+def get_class(player):
+    """Return the CLASSES dict for this player's class."""
+    return CLASSES.get(player.get('player_class') or 'enforcer', CLASSES['enforcer'])
+
+
+def get_skill_bonuses(db, user_id):
+    """Aggregate additive skill bonuses for a player."""
+    rows = db.execute("SELECT skill_code FROM player_skills WHERE user_id=?", (user_id,)).fetchall()
+    bonuses = {k: 0.0 for k in
+               ['fight_dmg','fight_def','crime_success','crime_cash','crime_cd',
+                'regen_mult','hospital_mult','casino_mult','territory_mult']}
+    for r in rows:
+        for k, v in SKILL_EFFECTS.get(r['skill_code'], {}).items():
+            if k in bonuses:
+                bonuses[k] += v
+    return bonuses
+
 
 def _now():
     return datetime.utcnow()
@@ -29,7 +98,8 @@ def lazy_regen(db, user_id):
     p = dict(row)
     now = _now()
     updates = {}
-    regen_mult = VIP_REGEN_MULT.get(get_vip_tier(p), 1.0)
+    cls_regen  = CLASSES.get(p.get('player_class') or 'enforcer', CLASSES['enforcer'])['regen_mult']
+    regen_mult = VIP_REGEN_MULT.get(get_vip_tier(p), 1.0) * cls_regen
 
     def regen_bar(bar, mx, ts_col, rate, tick):
         cur = p[bar]
@@ -189,8 +259,9 @@ def _effective_stats(player, db):
         if row: a_def = row['def']
 
     combat_bonus = VIP_COMBAT_BONUS.get(get_vip_tier(player), 0)
-    eff_atk = player['strength'] * (1 + w_atk / 100.0) + (c_atk + d_atk) * 0.1 + combat_bonus
-    eff_def = player['strength'] * 0.5 + player['stamina'] * 0.5 + a_def + combat_bonus
+    cls = get_class(player)
+    eff_atk = (player['strength'] * (1 + w_atk / 100.0) + (c_atk + d_atk) * 0.1 + combat_bonus) * cls['fight_dmg']
+    eff_def = (player['strength'] * 0.5 + player['stamina'] * 0.5 + a_def + combat_bonus) * cls['fight_def']
     return eff_atk, eff_def
 
 

@@ -56,10 +56,39 @@ def migrate_db():
         );
         CREATE INDEX IF NOT EXISTS idx_boosts_user ON player_boosts(user_id, expires_at);
     """)
+    # New tables
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS npc_enemies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, icon TEXT NOT NULL,
+            min_level INTEGER DEFAULT 1, energy_cost INTEGER DEFAULT 5,
+            atk INTEGER DEFAULT 10, def INTEGER DEFAULT 5, hp INTEGER DEFAULT 50,
+            payout_min INTEGER DEFAULT 30, payout_max INTEGER DEFAULT 80,
+            xp_reward INTEGER DEFAULT 5, drop_item_id INTEGER, drop_chance REAL DEFAULT 0.10
+        );
+        CREATE TABLE IF NOT EXISTS pve_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
+            enemy_id INTEGER NOT NULL, won INTEGER NOT NULL,
+            payout INTEGER DEFAULT 0, xp_gain INTEGER DEFAULT 0,
+            ts TEXT DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_pve_log ON pve_log(user_id, ts);
+        CREATE TABLE IF NOT EXISTS skills (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL, icon TEXT NOT NULL, category TEXT NOT NULL,
+            cost INTEGER DEFAULT 1, effect_json TEXT NOT NULL,
+            requires TEXT, descr TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS player_skills (
+            user_id INTEGER NOT NULL, skill_code TEXT NOT NULL,
+            unlocked_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (user_id, skill_code)
+        );
+    """)
     # New columns on existing tables (ignore "duplicate column" error)
     for sql in [
         "ALTER TABLE players ADD COLUMN vip_tier INTEGER DEFAULT 0",
         "ALTER TABLE players ADD COLUMN vip_until TEXT",
+        "ALTER TABLE players ADD COLUMN player_class TEXT DEFAULT 'enforcer'",
     ]:
         try:
             db.execute(sql)

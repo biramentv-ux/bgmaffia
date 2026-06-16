@@ -7,6 +7,10 @@
   <!-- Character card -->
   <div class="card">
     <h3>📊 {{ t('Character') }}</h3>
+    {% set cls_icons = {'enforcer':'💪','hacker':'💻','conman':'🎭','ghost':'👻'} %}
+    {% set cls_names = {'enforcer':'Enforcer','hacker':'Hacker','conman':'Conman','ghost':'Ghost'} %}
+    {% set pc = player.player_class or 'enforcer' %}
+    <div class="stat-row"><span>{{ t('Class') }}</span><strong>{{ cls_icons.get(pc,'💪') }} {{ cls_names.get(pc,'Enforcer') }}</strong></div>
     <div class="stat-row"><span>{{ t('Level') }}</span><strong>{{ player.level }}</strong></div>
     <div class="stat-row"><span>XP</span>
       <div style="flex:1;margin:0 8px">
