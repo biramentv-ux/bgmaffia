@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>The Street</h1>
+  <p>{{ online }} operator{{ 's' if online != 1 else '' }} active in the last five minutes.</p>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Respect</div><div class="val">{{ '{:,}'.format(user.respect) }}</div></div>
+  <div class="kpi"><div class="label">Cash on hand</div><div class="val">${{ '{:,}'.format(user.cash) }}</div></div>
+  <div class="kpi"><div class="label">Crimes pulled</div><div class="val">{{ user.crimes_done }}</div></div>
+  <div class="kpi"><div class="label">Fights won</div><div class="val">{{ user.fights_won }}</div></div>
+</div>
+
+<div class="panel">
+  <h2>Where to next</h2>
+  <div class="grid">
+    <a class="card" href="{{ url_for('game.crimes') }}"><h3>Pull a job</h3><div class="meta">Earn cash &amp; respect</div><span class="tag">Crimes</span></a>
+    <a class="card" href="{{ url_for('game.gym') }}"><h3>Train up</h3><div class="meta">Spend energy on stats</div><span class="tag">Gym</span></a>
+    <a class="card" href="{{ url_for('game.attack_list') }}"><h3>Find a mark</h3><div class="meta">Rob online players</div><span class="tag">PvP</span></a>
+    <a class="card" href="{{ url_for('gangs.territory') }}"><h3>Run a racket</h3><div class="meta">Passive protection money</div><span class="tag">Turf</span></a>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Word on the street</h2>
+  {% if feed %}
+  <ul class="feed">
+    {% for n in feed %}<li>{{ n.body }}<span class="when">{{ n.ts }}</span></li>{% endfor %}
+  </ul>
+  {% else %}<p class="muted">Quiet so far. Go make some noise.</p>{% endif %}
+</div>
+{% endblock %}

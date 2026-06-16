@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>{{ gang.name }} <span class="mono" style="color:var(--brass-soft);font-size:18px">{{ gang.tag }}</span></h1>
+<p>Respect {{ '{:,}'.format(gang.respect) }} · Gang bank ${{ '{:,}'.format(gang.bank) }}</p></div>
+
+{% if is_member %}
+<div class="panel">
+  <h2>Crew actions</h2>
+  <div class="inline-form">
+    <form method="post" action="{{ url_for('gangs.gang_donate', gid=gang.id) }}" class="inline-form" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field" style="margin:0"><label>Donate cash</label><input name="amount" type="number" min="1"></div>
+      <button class="btn brass sm">Donate</button>
+    </form>
+    {% if (user.gang_rank or 0) >= 2 %}
+    <form method="post" action="{{ url_for('gangs.gang_invite', gid=gang.id) }}" class="inline-form" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field" style="margin:0"><label>Invite player</label><input name="username"></div>
+      <button class="btn sm">Invite</button>
+    </form>
+    {% endif %}
+    {% if not is_boss %}
+    <form method="post" action="{{ url_for('gangs.gang_leave', gid=gang.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn ghost sm">Leave</button></form>
+    {% endif %}
+  </div>
+</div>
+{% elif (user.gang_rank or 0) >= 3 and user.gang_id and user.gang_id != gang.id %}
+<div class="panel">
+  <form method="post" action="{{ url_for('gangs.gang_war', target_gang=gang.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn">Declare war</button></form>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Members</h2>
+  <table>
+    <tr><th>Player</th><th>Rank</th><th class="num">Level</th><th class="num">Respect</th>{% if is_boss %}<th></th>{% endif %}</tr>
+    {% for m in members %}
+    <tr>
+      <td class="stamp">{{ m.username }}</td>
+      <td>{{ ranks[m.rank] }}</td>
+      <td class="num">{{ m.level }}</td>
+      <td class="num">{{ '{:,}'.format(m.respect) }}</td>
+      {% if is_boss and m.id != user.user_id %}
+      <td class="row-actions">
+        <form method="post" action="{{ url_for('gangs.gang_promote', gid=gang.id) }}" class="inline-form" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="user_id" value="{{ m.id }}">
+          <select name="rank" style="width:auto">{% for r in range(0,4) %}<option value="{{ r }}" {% if r==m.rank %}selected{% endif %}>{{ ranks[r] }}</option>{% endfor %}</select>
+          <button class="btn sm ghost">Set</button>
+        </form>
+        <form method="post" action="{{ url_for('gangs.gang_kick', gid=gang.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="user_id" value="{{ m.id }}"><button class="btn sm">Kick</button></form>
+      </td>
+      {% elif is_boss %}<td></td>{% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if wars %}
+<div class="panel">
+  <h2>War record</h2>
+  <table>
+    <tr><th>Attacker</th><th>Defender</th><th>Status</th><th class="num">Score</th></tr>
+    {% for w in wars %}<tr><td class="stamp">{{ w.a_name }}</td><td class="stamp">{{ w.d_name }}</td><td>{{ w.status }}</td><td class="num">{{ w.attacker_score }}–{{ w.defender_score }}</td></tr>{% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

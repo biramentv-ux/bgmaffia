@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Achievements</h1><p>Milestones on the way to the top.</p></div>
+<div class="grid">
+  {% for a in rows %}
+  <div class="card" style="{% if not a.earned_at %}opacity:.55{% endif %}">
+    <h3>{{ a.name }}</h3>
+    <div class="meta">{% if a.earned_at %}Earned {{ a.earned_at }}{% else %}Locked{% endif %}</div>
+    <p class="muted" style="font-size:13px;margin:0">{{ a.descr }}</p>
+    {% if a.reward_gold %}<span class="tag" style="margin-top:8px;display:inline-block">+{{ a.reward_gold }} gold</span>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

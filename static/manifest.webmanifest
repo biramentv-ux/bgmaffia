@@ -1,0 +1,17 @@
+{
+  "name": "BGMaffia",
+  "short_name": "BGMaffia",
+  "description": "Browser-based mafia MMORPG. Crimes, gangs, territory, crypto.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1c1c1c",
+  "theme_color": "#1c1c1c",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

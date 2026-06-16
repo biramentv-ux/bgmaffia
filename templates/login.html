@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block auth %}
+<div class="auth-card">
+  <div class="brand-mark stamp">CE</div>
+  <h1>Concrete Empire</h1>
+  <p class="tagline">Respect is the only currency that matters.</p>
+  {% with messages = get_flashed_messages() %}
+    {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  <form method="post" action="{{ url_for('auth.login') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field"><label>Street name</label><input name="username" autofocus required></div>
+    <div class="field"><label>Password</label><input type="password" name="password" required></div>
+    <button class="btn">Walk in</button>
+  </form>
+  <div class="swap">New in town? <a href="{{ url_for('auth.register') }}">Make your name</a></div>
+</div>
+{% endblock %}

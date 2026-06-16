@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Daily Jobs</h1><p>Reset every day. Hit the targets, claim the cut.</p></div>
+<div class="grid">
+  {% for r in rows %}
+  {% set m = r.m %}
+  <div class="card">
+    <h3>{{ m.name }}</h3>
+    <div class="meta">{{ m.descr }}</div>
+    <p class="mono" style="font-size:13px;margin:0 0 8px">{{ m.progress }} / {{ m.target }}</p>
+    <div class="bar" style="margin-bottom:10px"><i class="fill xp" style="width:{{ (m.progress / m.target * 100) if m.target else 0 }}%"></i></div>
+    {% if m.claimed %}
+      <span class="tag">Claimed</span>
+    {% elif m.completed %}
+      <form method="post" action="{{ url_for('social.claim_mission', mission_id=m.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn brass sm">Claim +${{ '{:,}'.format(r.reward.cash or 0) }}</button></form>
+    {% else %}
+      <span class="muted" style="font-size:13px">Reward: ${{ '{:,}'.format(r.reward.cash or 0) }}{% if r.reward.gold %} · {{ r.reward.gold }} gold{% endif %}</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

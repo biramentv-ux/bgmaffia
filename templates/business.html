@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Front Businesses – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>🏪 Front Businesses</h1>
+  <p>Legitimate on paper. Income accrues while you're away — collect whenever you like.</p>
+</div>
+
+{% if owned %}
+<div class="panel">
+  <h2>Your Operations</h2>
+  <table>
+    <thead><tr><th>Business</th><th class="num">Income/hr</th><th class="num">Accrued</th><th></th></tr></thead>
+    <tbody>
+    {% for bid, pb in owned.items() %}
+    <tr>
+      <td>{{ pb.name }}</td>
+      <td class="num">${{ '{:,}'.format(pb.income_per_hour) }}</td>
+      <td class="num">{{ '${:,}'.format(accrued[bid]) if accrued[bid] > 0 else '—' }}</td>
+      <td>
+        {% if accrued[bid] > 0 %}
+        <form method="post" action="{{ url_for('business.collect_income', biz_id=bid) }}" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm brass">Collect</button>
+        </form>
+        {% else %}
+        <button class="btn sm" disabled>Waiting</button>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Available Businesses</h2>
+  <div class="grid">
+    {% for biz in all_biz %}
+    {% set is_owned = biz.id in owned %}
+    <div class="card" style="{% if is_owned %}border-color:var(--brass){% endif %}">
+      <h3>{{ biz.name }}</h3>
+      <div class="meta">Level {{ biz.min_level }}+ · ${{ '{:,}'.format(biz.price) }}</div>
+      <p style="font-size:13px;color:var(--ink-soft);margin:4px 0 8px">{{ biz.descr }}</p>
+      <p style="font-size:12px;font-family:'JetBrains Mono',monospace">${{ '{:,}'.format(biz.income_per_hour) }}/hr · up to {{ biz.max_accrual_hours }}h</p>
+      {% if is_owned %}
+        <span class="tag" style="background:var(--brass);color:var(--bitumen)">OWNED</span>
+      {% elif user.level < biz.min_level %}
+        <button class="btn sm" disabled>Level {{ biz.min_level }} needed</button>
+      {% elif user.cash < biz.price %}
+        <button class="btn sm" disabled>Not enough cash</button>
+      {% else %}
+        <form method="post" action="{{ url_for('business.buy_business', biz_id=biz.id) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm">Buy for ${{ '{:,}'.format(biz.price) }}</button>
+        </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

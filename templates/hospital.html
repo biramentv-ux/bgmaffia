@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Hospital</h1><p>The back-alley surgeon charges $200 per remaining minute.</p></div>
+<div class="panel">
+  {% if locks.hospital %}
+    <h2>Laid up · <span data-until="{{ locks.hospital }}"><i>{{ locks.hospital }}s</i></span> left</h2>
+    <p>Wait it out, or pay to walk now.</p>
+    <form method="post" action="{{ url_for('game.heal') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn">Pay the surgeon</button>
+    </form>
+  {% else %}
+    <h2>All patched up</h2>
+    <p class="muted">You're not hurt. Get back out there.</p>
+  {% endif %}
+</div>
+{% endblock %}

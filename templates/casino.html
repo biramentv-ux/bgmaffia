@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>The Back Room</h1><p>House always wins... unless you're lucky tonight.</p></div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+  <div class="card">
+    <h3>Dice</h3>
+    <div class="meta">Guess high (4-6) or low (1-3). Even money.</div>
+    <form method="post" action="{{ url_for('casino.dice') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field"><label>Bet</label><input name="bet" type="number" min="1"></div>
+      <div class="row-actions">
+        <button class="btn sm" name="pick" value="low">Low</button>
+        <button class="btn sm" name="pick" value="high">High</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Slots</h3>
+    <div class="meta">Three of a kind pays up to ×25.</div>
+    <form method="post" action="{{ url_for('casino.slots') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field"><label>Bet</label><input name="bet" type="number" min="1"></div>
+      <button class="btn sm brass">Pull</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Lottery</h3>
+    <div class="meta">$100 a ticket. Jackpot $100,000.</div>
+    <form method="post" action="{{ url_for('casino.lottery') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn sm">Buy ticket</button>
+    </form>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:18px">
+  <h2>Blackjack</h2>
+  <div class="inline-form">
+    <div class="field" style="margin:0"><label>Bet</label><input id="bj-bet" type="number" min="1" value="100"></div>
+    <button class="btn" id="bj-deal">Deal</button>
+    <button class="btn ghost" id="bj-hit" disabled>Hit</button>
+    <button class="btn ghost" id="bj-stand" disabled>Stand</button>
+  </div>
+  <div id="bj-table" style="margin-top:16px;font-family:'JetBrains Mono',monospace">
+    <div>Dealer: <b id="bj-dealer">—</b></div>
+    <div>You: <b id="bj-player">—</b></div>
+    <div id="bj-result" class="bignum" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<script>
+const CSRF = window.CSRF;
+function fd(){const f=new FormData();f.append('_csrf',CSRF);return f;}
+async function bj(path, extra){
+  const body = fd();
+  if(extra) for(const k in extra) body.append(k, extra[k]);
+  const r = await fetch('/casino/blackjack/'+path,{method:'POST',headers:{'X-Requested-With':'fetch'},body});
+  return r.json();
+}
+function render(s){
+  document.getElementById('bj-dealer').textContent = (s.dealer||[]).join('  ') + (s.dealer_value!=null?'  ('+s.dealer_value+')':'');
+  document.getElementById('bj-player').textContent = (s.player||[]).join('  ') + '  ('+s.player_value+')';
+  const res=document.getElementById('bj-result');
+  if(s.result){
+    const map={win:'You win!',lose:'House wins.',push:'Push — bet returned.',bust:'Bust!'};
+    res.textContent=map[s.result]||'';
+    res.className='bignum '+(s.result==='win'?'win':(s.result==='lose'||s.result==='bust')?'lose':'');
+    toggle(false);
+    setTimeout(()=>location.reload(),1800);
+  }
+}
+function toggle(active){
+  document.getElementById('bj-hit').disabled=!active;
+  document.getElementById('bj-stand').disabled=!active;
+  document.getElementById('bj-deal').disabled=active;
+}
+document.getElementById('bj-deal').onclick=async()=>{
+  const bet=document.getElementById('bj-bet').value;
+  const s=await bj('deal',{bet});
+  if(s.error){toast(s.error);return;}
+  document.getElementById('bj-result').textContent='';
+  render(s); if(!s.result) toggle(true);
+};
+document.getElementById('bj-hit').onclick=async()=>{render(await bj('hit'));};
+document.getElementById('bj-stand').onclick=async()=>{render(await bj('stand'));};
+</script>
+{% endblock %}

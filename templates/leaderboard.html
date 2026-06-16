@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>The Rankings</h1><p>Who runs this town.</p></div>
+<div class="panel">
+  <div class="inline-form" style="margin-bottom:14px">
+    {% for key,label in [('respect','Respect'),('level','Level'),('kills','Kills'),('wealth','Wealth')] %}
+    <a class="btn sm {% if by==key %}brass{% else %}ghost{% endif %}" href="{{ url_for('social.leaderboard', by=key) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <table>
+    <tr><th class="num">#</th><th>Player</th><th class="num">Level</th><th class="num">Respect</th><th class="num">Kills</th><th class="num">Bank</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td class="num">{{ loop.index }}</td>
+      <td><a href="{{ url_for('game.profile', user_id=r.id) }}" class="stamp">{{ r.username }}</a></td>
+      <td class="num">{{ r.level }}</td>
+      <td class="num">{{ '{:,}'.format(r.respect) }}</td>
+      <td class="num">{{ r.fights_won }}</td>
+      <td class="num">${{ '{:,}'.format(r.bank) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

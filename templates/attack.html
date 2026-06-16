@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Find a Mark</h1><p>Only online, unprotected players show up here. Costs 10 energy.</p></div>
+<div class="panel">
+  <h2>Targets</h2>
+  {% if targets %}
+  <table>
+    <tr><th>Player</th><th class="num">Level</th><th class="num">Respect</th><th></th></tr>
+    {% for t in targets %}
+    <tr>
+      <td><a href="{{ url_for('game.profile', user_id=t.id) }}" class="stamp">{{ t.username }}</a></td>
+      <td class="num">{{ t.level }}</td>
+      <td class="num">{{ '{:,}'.format(t.respect) }}</td>
+      <td>
+        <form method="post" action="{{ url_for('game.attack', target_id=t.id) }}" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm" {% if locks.jail or locks.hospital or user.energy < 10 %}disabled{% endif %}>Attack</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Nobody worth hitting is online right now.</p>{% endif %}
+</div>
+{% endblock %}

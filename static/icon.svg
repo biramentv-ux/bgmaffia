@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#1c1c1c"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#c8a84b" stroke-width="6"/>
+  <text x="64" y="84" font-family="Oswald, Georgia, serif" font-size="52" font-weight="bold"
+        text-anchor="middle" fill="#c8a84b">BG</text>
+</svg>

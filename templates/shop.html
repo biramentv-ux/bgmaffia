@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Shop</h1><p>Fixed-price gear. Equip weapons, cars, dogs and armor for fights.</p></div>
+<div class="grid">
+  {% for i in items %}
+  <div class="card">
+    <h3>{{ i.name }}</h3>
+    <div class="meta">{{ i.type }} · Lvl {{ i.min_level }}+{% if i.atk %} · ATK {{ i.atk }}{% endif %}{% if i.def %} · DEF {{ i.def }}{% endif %}</div>
+    <p class="bignum" style="font-size:18px;color:var(--brass);margin:0 0 8px">${{ '{:,}'.format(i.price) }}</p>
+    <form method="post" action="{{ url_for('game.buy', item_id=i.id) }}" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn sm" {% if user.level < i.min_level or user.cash < i.price %}disabled{% endif %}>Buy</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

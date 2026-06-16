@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>The Gym</h1><p>Burn energy to raise your stats. Cost rises as you grow.</p></div>
+<div class="panel">
+  <h2>Train</h2>
+  <table>
+    <tr><th>Skill</th><th class="num">Level</th><th class="num">Energy cost</th><th></th></tr>
+    {% for stat in ['strength','stamina','intellect','sexappeal'] %}
+    <tr>
+      <td class="stamp">{{ stat }}</td>
+      <td class="num">{{ user[stat] }}</td>
+      <td class="num">{{ (user[stat] // 4) if (user[stat] // 4) > 0 else 1 }}</td>
+      <td>
+        <form method="post" action="{{ url_for('game.train') }}" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="stat" value="{{ stat }}">
+          <button class="btn sm" {% if locks.jail or locks.hospital %}disabled{% endif %}>Train</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% if user.skill_points > 0 %}
+<div class="panel">
+  <h2>Skill points · {{ user.skill_points }} available</h2>
+  <div class="inline-form">
+    {% for stat in ['strength','stamina','intellect','sexappeal'] %}
+    <form method="post" action="{{ url_for('game.spend_skill') }}" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="stat" value="{{ stat }}">
+      <button class="btn sm brass">+1 {{ stat }}</button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

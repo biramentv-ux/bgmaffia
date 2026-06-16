@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block auth %}
+<div class="auth-card">
+  <div class="brand-mark stamp">CE</div>
+  <h1>{{ code }}</h1>
+  <p class="tagline">{{ msg }}</p>
+  <a class="btn" href="{{ url_for('home.dashboard') }}">Back to the street</a>
+</div>
+{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ code }}</h1><p>{{ msg }}</p></div>
+<a class="btn" href="{{ url_for('home.dashboard') }}">Back to the dashboard</a>
+{% endblock %}

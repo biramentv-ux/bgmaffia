@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Mail</h1><p>Private messages. Watch your back even here.</p></div>
+<div class="panel">
+  <h2>Send a message</h2>
+  <form method="post" action="{{ url_for('social.mail_send') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="inline-form">
+      <div class="field" style="margin:0"><label>To</label><input name="to" required></div>
+      <div class="field" style="flex:1;margin:0"><label>Subject</label><input name="subject"></div>
+    </div>
+    <div class="field"><label>Message</label><textarea name="body" rows="3" required></textarea></div>
+    <button class="btn">Send</button>
+  </form>
+</div>
+<div class="panel">
+  <h2>Inbox</h2>
+  {% if inbox %}
+  <table>
+    <tr><th>From</th><th>Subject</th><th>Message</th><th class="num">When</th></tr>
+    {% for m in inbox %}<tr><td class="stamp">{{ m.sender }}</td><td>{{ m.subject }}</td><td class="muted">{{ m.body }}</td><td class="num">{{ m.ts }}</td></tr>{% endfor %}
+  </table>
+  {% else %}<p class="muted">No mail.</p>{% endif %}
+</div>
+{% endblock %}

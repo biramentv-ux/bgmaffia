@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Daily Reward – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>🎁 Daily Reward</h1>
+  <p>Log in every day to keep your streak alive. Miss a day and it resets.</p>
+</div>
+<div class="panel">
+  <h2>Current Streak</h2>
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="label">Streak</div>
+      <div class="val">{{ streak }}</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Next reward</div>
+      <div class="val" style="font-size:18px">${{ '{:,}'.format(next_cash) }}{% if next_gold %} +{{ next_gold }}✨{% endif %}</div>
+    </div>
+  </div>
+  {% if claimed_today %}
+    <p class="muted">Already claimed today. Come back tomorrow for day {{ streak + 1 }}!</p>
+  {% else %}
+    <form method="post" action="{{ url_for('daily.claim_daily') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn brass">Claim Day {{ streak + 1 }}</button>
+    </form>
+  {% endif %}
+</div>
+<div class="panel">
+  <h2>How it works</h2>
+  <ul class="feed" style="list-style:none;padding:0;margin:0">
+    <li>Reward = $500 × streak day (cap: day 30 = $15,000)</li>
+    <li>Bonus days (7, 14, 21, 28, 30) pay extra ✨ gold</li>
+    <li>Streak resets if you skip a day (UTC)</li>
+  </ul>
+</div>
+{% endblock %}

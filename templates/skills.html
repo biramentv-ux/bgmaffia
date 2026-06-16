@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Skill Tree – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>🧬 Skill Tree</h1>
+  <p>Unlock passive abilities that permanently boost your performance. You have <strong>{{ user.skill_points }} skill points</strong>.</p>
+</div>
+{% for cat in categories %}
+{% if grouped.get(cat) %}
+<div class="panel">
+  <h2>{{ cat_labels[cat] }}</h2>
+  <div class="grid">
+    {% for skill in grouped[cat] %}
+    {% set owned = skill.code in unlocked %}
+    {% set prereq_met = not skill.prereq_code or skill.prereq_code in unlocked %}
+    <div class="card" style="{% if owned %}border-color:var(--brass);{% elif not prereq_met %}opacity:.5{% endif %}">
+      <h3>{{ skill.name }}</h3>
+      <div class="meta">{{ skill.sp_cost }} SP{% if skill.prereq_code %} · Req: {{ skill.prereq_code }}{% endif %}</div>
+      <p style="font-size:13px;color:var(--ink-soft);margin:4px 0 10px">{{ skill.descr }}</p>
+      {% if owned %}
+        <span class="tag" style="background:var(--brass);color:var(--bitumen)">UNLOCKED</span>
+      {% elif not prereq_met %}
+        <button class="btn sm" disabled>Locked (need prereq)</button>
+      {% elif user.skill_points < skill.sp_cost %}
+        <button class="btn sm" disabled>Need {{ skill.sp_cost }} SP</button>
+      {% else %}
+        <form method="post" action="{{ url_for('skills.unlock_skill', code=skill.code) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm brass">Unlock ({{ skill.sp_cost }} SP)</button>
+        </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

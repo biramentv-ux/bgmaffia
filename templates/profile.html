@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>{{ p.username }}</h1><p>Level {{ p.level }} · {{ p.gang_name or 'No affiliation' }}</p></div>
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Respect</div><div class="val">{{ '{:,}'.format(p.respect) }}</div></div>
+  <div class="kpi"><div class="label">Strength</div><div class="val">{{ p.strength }}</div></div>
+  <div class="kpi"><div class="label">Stamina</div><div class="val">{{ p.stamina }}</div></div>
+  <div class="kpi"><div class="label">Intellect</div><div class="val">{{ p.intellect }}</div></div>
+  <div class="kpi"><div class="label">Fights W/L</div><div class="val">{{ p.fights_won }}/{{ p.fights_lost }}</div></div>
+  <div class="kpi"><div class="label">Crimes</div><div class="val">{{ p.crimes_done }}</div></div>
+</div>
+<div class="panel">
+  <h2>Dossier</h2>
+  <p class="muted">On record since {{ p.created_at }} · last seen {{ p.last_active or 'unknown' }}.</p>
+  {% if p.user_id != user.user_id %}
+  <a class="btn sm" href="{{ url_for('game.attack_list') }}">Find them online</a>
+  <a class="btn sm ghost" href="{{ url_for('social.hitlist') }}">Put a bounty up</a>
+  {% endif %}
+</div>
+{% endblock %}
