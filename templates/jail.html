@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>The Cells</h1><p>Bail costs $500/min. Bust others out for XP (45% odds, 3 nerve).</p></div>
+{% if locks.jail %}
+<div class="panel">
+  <h2>You're locked up · <span data-until="{{ locks.jail }}"><i>{{ locks.jail }}s</i></span></h2>
+  <form method="post" action="{{ url_for('game.bail') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="btn">Post bail</button>
+  </form>
+</div>
+{% endif %}
+<div class="panel">
+  <h2>Inmates</h2>
+  {% if inmates %}
+  <table>
+    <tr><th>Player</th><th class="num">Level</th><th></th></tr>
+    {% for i in inmates %}
+    <tr>
+      <td class="stamp">{{ i.username }}</td>
+      <td class="num">{{ i.level }}</td>
+      <td>
+        {% if i.id != user.user_id %}
+        <form method="post" action="{{ url_for('game.bust', target_id=i.id) }}" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm ghost" {% if locks.jail or user.nerve < 3 %}disabled{% endif %}>Bust out</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">The cells are empty.</p>{% endif %}
+</div>
+{% endblock %}

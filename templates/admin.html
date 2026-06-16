@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Admin</h1><p>Live balancing. Numbers update on save.</p></div>
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Players</div><div class="val">{{ stats.players }}</div></div>
+  <div class="kpi"><div class="label">Online</div><div class="val">{{ stats.online }}</div></div>
+  <div class="kpi"><div class="label">Gangs</div><div class="val">{{ stats.gangs }}</div></div>
+  <div class="kpi"><div class="label">Fights</div><div class="val">{{ stats.fights }}</div></div>
+</div>
+
+<div class="panel">
+  <h2>Events</h2>
+  <form method="post" action="{{ url_for('admin.create_event') }}" class="inline-form" style="margin-bottom:14px">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field" style="margin:0"><label>Code</label><input name="code"></div>
+    <div class="field" style="flex:1;margin:0"><label>Description</label><input name="descr"></div>
+    <div class="field" style="margin:0"><label>Modifier JSON</label><input name="modifier_json" value='{"payout":2,"xp":2}'></div>
+    <button class="btn sm">Start</button>
+  </form>
+  {% if events %}
+  <table>
+    <tr><th>Code</th><th>Modifier</th><th>Active</th><th></th></tr>
+    {% for e in events %}
+    <tr><td class="stamp">{{ e.code }}</td><td class="mono">{{ e.modifier_json }}</td><td>{{ 'yes' if e.is_active else 'no' }}</td>
+      <td><form method="post" action="{{ url_for('admin.toggle_event', event_id=e.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm ghost">Toggle</button></form></td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Crimes</h2>
+  <table>
+    <tr><th>Name</th><th class="num">E</th><th class="num">N</th><th class="num">Success</th><th class="num">Pay min</th><th class="num">Pay max</th><th></th></tr>
+    {% for c in crimes %}
+    <tr>
+      <td class="stamp">{{ c.name }}</td>
+      <td colspan="6">
+        <form method="post" action="{{ url_for('admin.edit_crime', crime_id=c.id) }}" class="inline-form" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <input name="energy_cost" value="{{ c.energy_cost }}" style="width:60px" title="energy">
+          <input name="nerve_cost" value="{{ c.nerve_cost }}" style="width:60px" title="nerve">
+          <input name="base_success" value="{{ c.base_success }}" style="width:70px" title="success">
+          <input name="payout_min" value="{{ c.payout_min }}" style="width:90px" title="pay min">
+          <input name="payout_max" value="{{ c.payout_max }}" style="width:90px" title="pay max">
+          <button class="btn sm">Save</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="panel">
+  <h2>Players</h2>
+  <table>
+    <tr><th>Name</th><th class="num">Lvl</th><th class="num">Cash</th><th>Grant</th><th></th></tr>
+    {% for p in players %}
+    <tr>
+      <td class="stamp">{{ p.username }}{% if p.is_banned %} <span class="tag">banned</span>{% endif %}</td>
+      <td class="num">{{ p.level }}</td>
+      <td class="num">${{ '{:,}'.format(p.cash) }}</td>
+      <td>
+        <form method="post" action="{{ url_for('admin.grant', user_id=p.id) }}" class="inline-form" style="margin:0">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <input name="cash" placeholder="cash" style="width:80px">
+          <input name="gold" placeholder="gold" style="width:60px">
+          <button class="btn sm ghost">Give</button>
+        </form>
+      </td>
+      <td><form method="post" action="{{ url_for('admin.ban', user_id=p.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm">{{ 'Unban' if p.is_banned else 'Ban' }}</button></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

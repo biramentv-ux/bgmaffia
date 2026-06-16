@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Inventory</h1><p>Equip gear or use consumables to restore your bars.</p></div>
+<div class="panel">
+  <h2>Your gear</h2>
+  {% if inv %}
+  <table>
+    <tr><th>Item</th><th>Type</th><th class="num">Qty</th><th class="num">ATK</th><th class="num">DEF</th><th></th></tr>
+    {% for v in inv %}
+    <tr>
+      <td>{{ v.name }}
+        {% if v.id == user.equipped_weapon or v.id == user.equipped_car or v.id == user.equipped_dog or v.id == user.equipped_armor %}<span class="tag">Equipped</span>{% endif %}
+      </td>
+      <td class="stamp">{{ v.type }}</td>
+      <td class="num">{{ v.qty }}</td>
+      <td class="num">{{ v.atk }}</td>
+      <td class="num">{{ v.def }}</td>
+      <td class="row-actions">
+        {% if v.type in ['weapon','car','dog','armor'] %}
+        <form method="post" action="{{ url_for('game.equip', inv_id=v.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm ghost">Equip</button></form>
+        {% endif %}
+        {% if v.effect_json %}
+        <form method="post" action="{{ url_for('game.use_item', inv_id=v.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm brass">Use</button></form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Empty. Hit the <a href="{{ url_for('game.shop') }}">shop</a>.</p>{% endif %}
+</div>
+{% endblock %}

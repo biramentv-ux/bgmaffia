@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Street Encounters – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>🗡️ Street Encounters</h1>
+  <p>Fight NPC enemies to earn cash, XP, and rare loot. Costs 10 energy per fight.</p>
+</div>
+<div class="grid">
+  {% for enemy in enemies %}
+  <div class="card">
+    <h3>{{ enemy.name }}</h3>
+    <div class="meta">Min level {{ enemy.min_level }} · HP {{ enemy.health }} · STR {{ enemy.strength }}</div>
+    <p style="font-size:13px;color:var(--ink-soft);margin:4px 0 8px">
+      ${{ "{:,}".format(enemy.reward_min) }}–${{ "{:,}".format(enemy.reward_max) }} · +{{ enemy.xp_reward }} XP
+      {% if enemy.loot_chance > 0 %} · {{ (enemy.loot_chance*100)|int }}% loot drop{% endif %}
+    </p>
+    {% if user.level < enemy.min_level %}
+      <button class="btn sm" disabled>Reach level {{ enemy.min_level }}</button>
+    {% elif user.energy < 10 %}
+      <button class="btn sm" disabled>Need 10 energy</button>
+    {% elif locks.jail or locks.hospital %}
+      <button class="btn sm" disabled>Locked up</button>
+    {% else %}
+      <form method="post" action="{{ url_for('pve.fight_npc', enemy_id=enemy.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm">Fight!</button>
+      </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

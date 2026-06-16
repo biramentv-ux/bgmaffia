@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Street Lottery – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>🎰 Street Lottery</h1>
+  <p>A draw every hour. Winner takes 70% of the pot — the house keeps the rest. More tickets, better odds.</p>
+</div>
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Current Pot</div><div class="val">${{ '{:,}'.format(pot) }}</div></div>
+  <div class="kpi"><div class="label">Prize (70%)</div><div class="val">${{ '{:,}'.format(prize) }}</div></div>
+  <div class="kpi"><div class="label">Total Tickets</div><div class="val">{{ total_tickets }}</div></div>
+  <div class="kpi"><div class="label">Your Tickets</div><div class="val">{{ pending }}</div></div>
+</div>
+{% if total_tickets > 0 and pending > 0 %}
+<div class="panel">
+  <h2>Your Odds</h2>
+  <p>{{ "%.2f"|format(pending / total_tickets * 100) }}% chance to win the next draw.</p>
+</div>
+{% endif %}
+<div class="panel">
+  <h2>Buy Tickets — $100 each</h2>
+  <form method="post" action="{{ url_for('lottery.buy_tickets') }}" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field" style="margin:0">
+      <label>Quantity</label>
+      <input name="qty" type="number" min="1" max="100" value="1" style="width:80px">
+    </div>
+    <button class="btn brass">Buy Tickets</button>
+  </form>
+</div>
+{% if recent %}
+<div class="panel">
+  <h2>Recent Winners</h2>
+  <table>
+    <thead><tr><th>Winner</th><th class="num">Prize</th><th class="num">Tickets</th><th>When</th></tr></thead>
+    <tbody>
+    {% for draw in recent %}
+    <tr>
+      <td>{{ draw.username or '—' }}</td>
+      <td class="num win">${{ '{:,}'.format(draw.prize) }}</td>
+      <td class="num">{{ draw.ticket_count }}</td>
+      <td class="muted">{{ draw.ts[:16] }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

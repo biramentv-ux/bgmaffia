@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Black Market</h1><p>Player-to-player. List your gear, snap up a deal.</p></div>
+<div class="panel">
+  <h2>List an item</h2>
+  {% if my_items %}
+  <form method="post" action="{{ url_for('market.market_list') }}" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field" style="margin:0"><label>Item</label>
+      <select name="inv_id">{% for it in my_items %}<option value="{{ it.id }}">{{ it.name }} ({{ it.type }})</option>{% endfor %}</select>
+    </div>
+    <div class="field" style="margin:0"><label>Price</label><input name="price" type="number" min="1"></div>
+    <button class="btn">List</button>
+  </form>
+  {% else %}<p class="muted">You have nothing to sell.</p>{% endif %}
+</div>
+<div class="panel">
+  <h2>For sale</h2>
+  {% if listings %}
+  <table>
+    <tr><th>Item</th><th>Type</th><th>Seller</th><th class="num">Price</th><th></th></tr>
+    {% for m in listings %}
+    <tr>
+      <td>{{ m.item_name }}</td>
+      <td class="stamp">{{ m.type }}</td>
+      <td class="muted">{{ m.seller }}</td>
+      <td class="num">${{ '{:,}'.format(m.price) }}</td>
+      <td>
+        {% if m.seller_id == user.user_id %}
+        <form method="post" action="{{ url_for('market.market_cancel', listing_id=m.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm ghost">Cancel</button></form>
+        {% else %}
+        <form method="post" action="{{ url_for('market.market_buy', listing_id=m.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm" {% if user.cash < m.price %}disabled{% endif %}>Buy</button></form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Market's empty right now.</p>{% endif %}
+</div>
+{% endblock %}

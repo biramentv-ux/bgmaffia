@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Shadow Exchange – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>₿ Shadow Exchange</h1>
+  <p>Untraceable coins, volatile prices. Updated every 5 minutes. Buy low, sell high — or lose your shirt.</p>
+</div>
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Cash on hand</div><div class="val">${{ '{:,}'.format(user.cash) }}</div></div>
+</div>
+<div class="grid">
+  {% for coin in coins %}
+  {% set held = holdings.get(coin.id, 0) %}
+  {% set pct_change = ((coin.price - coin.prev_price) / coin.prev_price * 100) if coin.prev_price else 0 %}
+  <div class="card">
+    <h3>{{ coin.symbol }}</h3>
+    <div class="meta">{{ coin.name }}</div>
+    <p style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:22px;margin:6px 0;color:var(--oxblood)">${{ "%.4f"|format(coin.price) }}</p>
+    <p style="font-size:12px;color:{{ 'var(--olive)' if pct_change >= 0 else 'var(--oxblood-bright)' }};font-family:'JetBrains Mono',monospace">
+      {{ '+' if pct_change >= 0 else '' }}{{ "%.2f"|format(pct_change) }}% since last tick
+    </p>
+    {% if held > 0 %}
+    <p style="font-size:12px;color:var(--ink-soft);margin:4px 0">
+      Holding: {{ "%.4f"|format(held) }} (≈ ${{ '{:,}'.format((held * coin.price)|int) }})
+    </p>
+    {% endif %}
+    <div class="row-actions" style="margin-top:10px;flex-direction:column;gap:6px">
+      <form method="post" action="{{ url_for('crypto.buy_coin', coin_id=coin.id) }}" class="inline-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input name="spend" type="number" min="1" placeholder="$ to spend" style="width:120px">
+        <button class="btn sm brass">Buy</button>
+      </form>
+      {% if held > 0 %}
+      <form method="post" action="{{ url_for('crypto.sell_coin', coin_id=coin.id) }}" class="inline-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input name="amount" type="number" step="0.0001" min="0.0001" max="{{ held }}" placeholder="coins to sell" style="width:120px">
+        <button class="btn sm">Sell</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

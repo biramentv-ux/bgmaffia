@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Bank</h1><p>Cash on hand can be stolen. Banked money is safe and earns 1%/hour.</p></div>
+<div class="panel">
+  <h2>Move money</h2>
+  <div class="inline-form">
+    <form method="post" action="{{ url_for('game.deposit') }}" class="inline-form" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field" style="margin:0"><label>Deposit</label><input name="amount" type="number" min="1" placeholder="0"></div>
+      <button class="btn brass sm">Deposit</button>
+    </form>
+    <form method="post" action="{{ url_for('game.withdraw') }}" class="inline-form" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field" style="margin:0"><label>Withdraw</label><input name="amount" type="number" min="1" placeholder="0"></div>
+      <button class="btn ghost sm">Withdraw</button>
+    </form>
+  </div>
+</div>
+<div class="panel">
+  <h2>Ledger</h2>
+  {% if log %}
+  <table>
+    <tr><th>Type</th><th class="num">Amount</th><th class="num">When</th></tr>
+    {% for l in log %}<tr><td class="stamp">{{ l.kind }}</td><td class="num">${{ '{:,}'.format(l.amount) }}</td><td class="num">{{ l.ts }}</td></tr>{% endfor %}
+  </table>
+  {% else %}<p class="muted">No transactions yet.</p>{% endif %}
+</div>
+{% endblock %}

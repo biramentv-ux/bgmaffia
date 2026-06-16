@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}BGMaffia{% endblock %}</title>
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{% if not user %}auth-bg{% endif %}">
+{% if user %}
+<div class="shell">
+
+  <!-- Left nav -->
+  <aside class="nav">
+    <a class="brand" href="{{ url_for('home.dashboard') }}">
+      <span class="brand-mark">BG</span>
+      <span class="brand-name">BG<br>Maffia</span>
+    </a>
+    <nav>
+      <div class="nav-group">{{ t('Streets') }}</div>
+      <a href="{{ url_for('home.dashboard') }}">{{ t('Dashboard') }}</a>
+      <a href="{{ url_for('game.crimes') }}">{{ t('Crimes') }}</a>
+      <a href="{{ url_for('game.gym') }}">{{ t('Gym') }}</a>
+      <a href="{{ url_for('game.attack_list') }}">{{ t('Attack') }}</a>
+      <a href="{{ url_for('pve.pve_page') }}">{{ t('Street Encounters') }}</a>
+      <a href="{{ url_for('gangs.territory') }}">{{ t('Territory') }}</a>
+
+      <div class="nav-group">{{ t('Status') }}</div>
+      <a href="{{ url_for('game.hospital') }}">{{ t('Hospital') }}</a>
+      <a href="{{ url_for('game.jail') }}">{{ t('Jail') }}</a>
+
+      <div class="nav-group">{{ t('Economy') }}</div>
+      <a href="{{ url_for('game.bank') }}">{{ t('Bank') }}</a>
+      <a href="{{ url_for('game.shop') }}">{{ t('Shop') }}</a>
+      <a href="{{ url_for('game.inventory') }}">{{ t('Inventory') }}</a>
+      <a href="{{ url_for('market.market') }}">{{ t('Black Market') }}</a>
+      <a href="{{ url_for('casino.casino') }}">{{ t('Casino') }}</a>
+      <a href="{{ url_for('crypto.crypto_page') }}">{{ t('Crypto') }}</a>
+      <a href="{{ url_for('business.businesses_page') }}">{{ t('Businesses') }}</a>
+
+      <div class="nav-group">{{ t('Crew') }}</div>
+      <a href="{{ url_for('gangs.gangs') }}">{{ t('Gangs') }}</a>
+      <a href="{{ url_for('social.mail') }}">{{ t('Mail') }}</a>
+      <a href="{{ url_for('social.chat') }}">{{ t('Chat') }}</a>
+      <a href="{{ url_for('social.missions') }}">{{ t('Missions') }}</a>
+
+      <div class="nav-group">{{ t('More') }}</div>
+      <a href="{{ url_for('skills.skills_page') }}">{{ t('Skill Tree') }}</a>
+      <a href="{{ url_for('daily.daily_page') }}">{{ t('Daily Reward') }}</a>
+      <a href="{{ url_for('lottery.lottery_page') }}">{{ t('Street Lottery') }}</a>
+      <a href="{{ url_for('social.leaderboard') }}">{{ t('Leaderboard') }}</a>
+      <a href="{{ url_for('social.achievements') }}">{{ t('Achievements') }}</a>
+      <a href="{{ url_for('social.hitlist') }}">{{ t('Hitlist') }}</a>
+      <a href="{{ url_for('store.store') }}" style="color:var(--brass-soft);font-weight:700">💎 {{ t('Premium Store') }}</a>
+      {% if user.is_admin %}<a href="{{ url_for('admin.panel') }}">{{ t('Admin') }}</a>{% endif %}
+    </nav>
+    <form method="post" action="{{ url_for('auth.logout') }}" class="logout">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button>{{ t('Log out') }}</button>
+    </form>
+  </aside>
+
+  <!-- Central content -->
+  <main class="content">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Right stat sidebar -->
+  <aside class="stats">
+    <a class="me" href="{{ url_for('game.profile', user_id=user.user_id) }}">
+      <div class="me-name">{{ user.username }}{% if vip_tier %} <span style="font-size:11px;color:var(--brass-soft)">[VIP{{ vip_tier }}]</span>{% endif %}</div>
+      <div class="me-sub">Lv {{ user.level }} · {{ '{:,}'.format(user.respect) }} resp</div>
+    </a>
+
+    {% set xp_target = xp_needed(user.level) %}
+    <div class="bar-block">
+      <div class="bar-label"><span>XP</span><span>{{ '{:,}'.format(user.xp) }} / {{ '{:,}'.format(xp_target) }}</span></div>
+      <div class="bar"><i class="fill xp" style="width: {{ (user.xp / xp_target * 100) if xp_target else 0 }}%"></i></div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-label"><span>{{ t('Energy') }}</span><span><b data-bar="energy">{{ user.energy }}</b>/{{ user.energy_max }}</span></div>
+      <div class="bar"><i class="fill energy" data-fill="energy" style="width: {{ user.energy / user.energy_max * 100 }}%"></i></div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-label"><span>{{ t('Nerve') }}</span><span><b data-bar="nerve">{{ user.nerve }}</b>/{{ user.nerve_max }}</span></div>
+      <div class="bar"><i class="fill nerve" data-fill="nerve" style="width: {{ user.nerve / user.nerve_max * 100 }}%"></i></div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-label"><span>{{ t('Health') }}</span><span><b data-bar="health">{{ user.health }}</b>/{{ user.health_max }}</span></div>
+      <div class="bar"><i class="fill health" data-fill="health" style="width: {{ user.health / user.health_max * 100 }}%"></i></div>
+    </div>
+
+    <div class="wallet">
+      <div class="coin"><span>{{ t('Cash') }}</span><b data-bar="cash">${{ '{:,}'.format(user.cash) }}</b></div>
+      <div class="coin"><span>Bank</span><b>${{ '{:,}'.format(user.bank) }}</b></div>
+      <div class="coin"><span>{{ t('Gold') }}</span><b><a href="{{ url_for('store.store') }}" style="color:var(--brass-soft)">{{ user.gold }} ✨</a></b></div>
+    </div>
+
+    <div class="status-line">
+      {% if locks.jail %}<span class="lock jail" data-until="{{ locks.jail }}">{{ t('In jail') }} · <i>{{ locks.jail }}s</i></span>
+      {% elif locks.hospital %}<span class="lock hosp" data-until="{{ locks.hospital }}">{{ t('In hospital') }} · <i>{{ locks.hospital }}s</i></span>
+      {% else %}<span class="lock free">{{ t('On the street') }}</span>{% endif %}
+      {% if locks.protection %}<span class="lock prot">🛡 Protected</span>{% endif %}
+    </div>
+
+    <!-- Language toggle -->
+    <div style="margin-top:12px;font-size:11px;display:flex;gap:6px;justify-content:center">
+      <a href="{{ url_for('home.set_lang', code='en') }}" style="opacity:{{ '1' if lang=='en' else '0.4' }}">EN</a>
+      <a href="{{ url_for('home.set_lang', code='bg') }}" style="opacity:{{ '1' if lang=='bg' else '0.4' }}">БГ</a>
+    </div>
+  </aside>
+</div>
+
+<div id="toasts"></div>
+<script>window.CSRF = "{{ csrf_token() }}";</script>
+<script src="{{ url_for('static', filename='game.js') }}"></script>
+{% else %}
+  {% block auth %}{% endblock %}
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Gangs</h1><p>Found a crew at 50 respect. Hold turf, run the bank job together.</p></div>
+{% if invites %}
+<div class="panel">
+  <h2>Invitations</h2>
+  {% for inv in invites %}
+  <div class="inline-form" style="margin-bottom:8px">
+    <span class="stamp">{{ inv.name }}</span>
+    <form method="post" action="{{ url_for('gangs.gang_join', gid=inv.gang_id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm brass">Accept</button></form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% if not user.gang_id %}
+<div class="panel">
+  <h2>Start your own</h2>
+  <form method="post" action="{{ url_for('gangs.gang_create') }}" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field" style="margin:0"><label>Name</label><input name="name" required></div>
+    <div class="field" style="margin:0"><label>Tag</label><input name="tag" maxlength="5" style="width:90px"></div>
+    <button class="btn" {% if user.respect < 50 %}disabled{% endif %}>Found gang (50 respect)</button>
+  </form>
+</div>
+{% endif %}
+<div class="panel">
+  <h2>Active crews</h2>
+  {% if rows %}
+  <table>
+    <tr><th>Gang</th><th>Tag</th><th class="num">Members</th><th class="num">Respect</th><th></th></tr>
+    {% for g in rows %}
+    <tr>
+      <td class="stamp">{{ g.name }}</td>
+      <td class="mono">{{ g.tag }}</td>
+      <td class="num">{{ g.members }}/{{ g.max_members }}</td>
+      <td class="num">{{ '{:,}'.format(g.respect) }}</td>
+      <td><a class="btn sm ghost" href="{{ url_for('gangs.gang_detail', gid=g.id) }}">View</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No gangs yet. Be the first family.</p>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Register – BGMaffia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
+    .class-card{border:2px solid var(--parchment-2);border-radius:4px;padding:14px;cursor:pointer;background:var(--parchment);color:var(--ink);transition:.15s}
+    .class-card:hover{border-color:var(--brass)}
+    .class-card.selected{border-color:var(--oxblood);background:rgba(124,33,40,.06)}
+    .class-card input{display:none}
+    .class-icon{font-size:28px;display:block;margin-bottom:6px}
+    .class-name{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:14px;color:var(--oxblood)}
+    .class-desc{font-size:12px;color:var(--ink-soft);margin:4px 0}
+    .class-stats{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft)}
+  </style>
+</head>
+<body class="auth-bg">
+<div class="auth-card" style="max-width:500px">
+  <div class="brand-mark">BG</div>
+  <h1>Join the Streets</h1>
+  <p class="tagline">Start as an ex-con with $1,000 in the bank.</p>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}{% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}{% endif %}
+  {% endwith %}
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field">
+      <label>Username (3–20 chars)</label>
+      <input name="username" required minlength="3" maxlength="20" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Email (optional)</label>
+      <input name="email" type="email" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password (min 6 chars)</label>
+      <input name="password" type="password" required minlength="6" autocomplete="new-password">
+    </div>
+
+    <label style="margin:12px 0 8px;display:block;font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-soft)">Choose Your Class</label>
+    <div class="class-grid">
+      {% for code, cls in classes.items() %}
+      <label class="class-card {% if loop.first %}selected{% endif %}" id="card-{{ code }}" onclick="selectClass('{{ code }}')">
+        <input type="radio" name="player_class" value="{{ code }}" {% if loop.first %}checked{% endif %}>
+        <span class="class-icon">{{ cls.icon }}</span>
+        <div class="class-name">{{ cls.name }}</div>
+        <div class="class-desc">{{ cls.desc }}</div>
+        <div class="class-stats">STR {{ cls.stats.strength }} · STA {{ cls.stats.stamina }} · INT {{ cls.stats.intellect }} · CHR {{ cls.stats.sexappeal }}</div>
+      </label>
+      {% endfor %}
+    </div>
+
+    <button class="btn" type="submit" style="width:100%;margin-top:8px">Start Your Hustle</button>
+  </form>
+  <p class="swap">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+</div>
+<script>
+function selectClass(code) {
+  document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById('card-' + code);
+  if (card) card.classList.add('selected');
+  const input = document.querySelector('.class-card#card-' + code + ' input');
+  if (input) input.checked = true;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Territory</h1><p>Claim a spot to earn protection money every hour. Rivals can muscle in.</p></div>
+<div class="grid">
+  {% for s in spots %}
+  {% set t = s.t %}
+  <div class="card">
+    <h3>{{ t.name }}</h3>
+    <div class="meta">{{ t.type }} · ${{ '{:,}'.format(t.income_per_hour) }}/hr</div>
+    <p class="muted" style="font-size:13px;margin:0 0 8px">
+      {% if t.owner_name %}Held by <b>{{ t.owner_name }}</b>{% else %}Unclaimed{% endif %}<br>
+      Needs {{ '{:,}'.format(t.min_respect) }} respect · ${{ '{:,}'.format(t.claim_cost) }} to take
+    </p>
+    {% if s.mine %}
+      <p class="bignum win" style="margin:0 0 8px">+${{ '{:,}'.format(s.accrued) }} waiting</p>
+      <form method="post" action="{{ url_for('gangs.territory_collect', tid=t.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn brass sm">Collect</button></form>
+    {% else %}
+      <form method="post" action="{{ url_for('gangs.territory_claim', tid=t.id) }}" style="margin:0"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn sm" {% if user.respect < t.min_respect or user.cash < t.claim_cost %}disabled{% endif %}>Claim turf</button></form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

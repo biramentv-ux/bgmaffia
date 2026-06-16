@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Premium Store – BGMaffia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>💎 Premium Store</h1>
+  <p>Demo mode — purchases are simulated, no real payment charged. You have <strong>{{ user.gold }} Gold ✨</strong>.</p>
+</div>
+
+<!-- Gold Packages -->
+<div class="panel">
+  <h2>Buy Gold</h2>
+  <div class="grid">
+    {% for pkg in packages %}
+    <div class="card">
+      <h3>{{ pkg.label }}</h3>
+      <div class="meta">{{ pkg.gold }} ✨ Gold</div>
+      {% if pkg.bonus %}<span class="tag" style="background:var(--brass);color:var(--bitumen)">{{ pkg.bonus }}</span>{% endif %}
+      <p style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:20px;color:var(--oxblood);margin:10px 0">${{ "%.2f"|format(pkg.price) }}</p>
+      <form method="post" action="{{ url_for('store.buy_gold', pkg_id=pkg.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn brass sm">Buy (Demo)</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- VIP Tiers -->
+<div class="panel">
+  <h2>VIP Membership</h2>
+  <div class="grid">
+    {% for v in vip_tiers %}
+    <div class="card" style="{% if current_vip == v.tier %}border-color:var(--brass){% endif %}">
+      <h3>{{ v.name }}</h3>
+      <div class="meta">{{ v.gold }} ✨ · {{ v.days }} days</div>
+      {% if current_vip == v.tier %}<span class="tag" style="background:var(--brass);color:var(--bitumen)">ACTIVE</span>{% endif %}
+      <ul style="margin:10px 0 12px;padding-left:16px;font-size:13px;color:var(--ink-soft)">
+        {% for perk in v.perks %}<li>{{ perk }}</li>{% endfor %}
+      </ul>
+      <form method="post" action="{{ url_for('store.buy_vip', tier=v.tier) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm {% if current_vip == v.tier %}brass{% endif %}">
+          {% if current_vip == v.tier %}Renew{% elif current_vip > v.tier %}Downgrade{% else %}Activate{% endif %}
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Instant Boosts -->
+<div class="panel">
+  <h2>Instant Boosts</h2>
+  <div class="grid">
+    {% for b in boosts %}
+    <div class="card">
+      <h3>{{ b.name }}</h3>
+      <div class="meta">{{ b.gold }} ✨ Gold</div>
+      <p style="font-size:13px;color:var(--ink-soft);margin:4px 0 10px">{{ b.desc }}</p>
+      {% if boost_status.get(b.type) %}
+        <span class="tag" style="background:var(--olive)">ACTIVE until {{ boost_status[b.type][:16] }}</span>
+      {% else %}
+        <form method="post" action="{{ url_for('store.activate_boost', boost_type=b.type) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn sm">Activate</button>
+        </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Transaction History -->
+{% if history %}
+<div class="panel">
+  <h2>Transaction History</h2>
+  <table>
+    <thead><tr><th>Type</th><th class="num">Gold</th><th>Note</th><th>When</th></tr></thead>
+    <tbody>
+    {% for tx in history %}
+    <tr>
+      <td class="stamp">{{ tx.kind }}</td>
+      <td class="num {% if tx.gold_delta > 0 %}win{% else %}lose{% endif %}">
+        {{ '+' if tx.gold_delta > 0 else '' }}{{ tx.gold_delta }} ✨
+      </td>
+      <td class="muted">{{ tx.note }}</td>
+      <td class="muted">{{ tx.ts[:16] }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

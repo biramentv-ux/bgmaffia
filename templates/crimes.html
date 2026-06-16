@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>Crimes</h1><p>Server rolls the dice. Fail and you're in a cell.</p></div>
+{% if locks.jail %}<div class="panel"><p class="lose">You're in jail. Sit tight or post bail.</p></div>{% endif %}
+<div class="grid">
+  {% for row in crimes %}
+  {% set c = row.c %}
+  <div class="card">
+    <h3>{{ c.name }}</h3>
+    <div class="meta">Lvl {{ c.min_level }}+ · {{ c.energy_cost }} energy · {{ c.nerve_cost }} nerve</div>
+    <p class="muted" style="font-size:13px;margin:0 0 4px">
+      ${{ '{:,}'.format(c.payout_min) }}–${{ '{:,}'.format(c.payout_max) }} · {{ (c.base_success*100)|int }}% base · +{{ c.xp_reward }} XP
+    </p>
+    {% if row.remaining > 0 %}
+      <button class="btn sm" disabled data-until="{{ row.remaining }}" data-cd="1">{{ row.remaining }}s</button>
+    {% elif user.level < c.min_level %}
+      <button class="btn sm" disabled>Level {{ c.min_level }} needed</button>
+    {% else %}
+      <form class="ajax-crime" method="post" action="{{ url_for('game.commit_crime', crime_id=c.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn sm" {% if locks.jail or locks.hospital %}disabled{% endif %}>Commit</button>
+      </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
